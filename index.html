@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>BLISTER Score · West Suffolk Cardiology</title>
+<meta name="description" content="A clinician-facing calculator for the BLISTER score — predicting cardiac implantable electronic device (CIED) infection risk and guiding TYRX antimicrobial envelope use. West Suffolk NHS Foundation Trust." />
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#EAF1F6" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="icon" href="favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" href="favicon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="BLISTER" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { paper:'#EAF1F6','paper-2':'#DCE8F0','paper-3':'#CBDBE7', ink:'#0E2233','ink-mid':'#2C3E4F','ink-mute':'#6B7C8A', rule:'#B9C9D6', accent:'#1F74C4','accent-2':'#2A8BD4', ok:'#2E8B7B' },
+    fontFamily: { serif:['"Newsreader"','ui-serif','Georgia','serif'], mono:['"JetBrains Mono"','ui-monospace','monospace'] },
+  } } }
+</script>
+
+<style>
+  :root {
+    --paper:#EAF1F6; --paper-2:#DCE8F0; --ink:#0E2233; --ink-mid:#2C3E4F; --ink-mute:#6B7C8A;
+    --rule:#B9C9D6; --accent:#1F74C4; --accent-2:#2A8BD4; --ok:#2E8B7B; --topbar:54px;
+    /* motion tokens — shared easing + timing so animations feel like one system */
+    --ease:cubic-bezier(0.2,0.7,0.2,1); --t-fast:150ms; --t-med:240ms; --t-slow:420ms;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: 'Newsreader', ui-serif, Georgia, serif;
+    font-feature-settings: "kern" 1, "liga" 1, "onum" 1;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    font-size: 16px; line-height: 1.45;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .eyebrow { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-mute); }
+  mark.ink { background: transparent; color: var(--accent); font-weight: 600; }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 40; height: var(--topbar);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 0 18px; background: rgba(234,241,246,0.92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+  .brand-mark { font-family:'Newsreader',serif; font-style:italic; font-weight:400; font-size:1.5rem; color:var(--accent); line-height:1; }
+  .brand-title { font-family:'Newsreader',serif; font-weight:600; font-size:1.18rem; letter-spacing:-0.01em; color:var(--ink); white-space:nowrap; }
+  .brand-sub { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-mute); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  @media (max-width: 720px) { .brand-sub { display:none; } }
+  .topbar-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .tb-btn {
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase;
+    padding:7px 13px; border:1px solid var(--rule); background:transparent; color:var(--ink-mid); cursor:pointer; transition:all 180ms ease;
+  }
+  .tb-btn:hover { border-color:var(--ink); color:var(--ink); }
+  .tb-ver { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-mute); }
+  @media (max-width: 480px) { .tb-ver { display:none; } }
+
+  /* ── App layout ── */
+  .app { display:grid; grid-template-columns: 1fr 340px; gap:20px; align-items:start; max-width:1380px; margin:0 auto; padding:16px 18px 22px; }
+  @media (max-width: 980px) { .app { grid-template-columns: 1fr; gap:14px; } }
+
+  .domains { min-width:0; }
+  /* BLISTER acronym spine — letters run down the left, lighting up as the score builds. */
+  .blist { border:1px solid var(--rule); background:var(--paper); padding:0 22px; }
+  .brow { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; padding:10px 0; border-bottom:1px solid var(--rule); }
+  .brow:last-child { border-bottom:none; }
+  .bletter { flex:0 0 auto; width:26px; text-align:center; font-family:'Newsreader',serif; font-style:italic; font-weight:300; font-size:2.4rem; line-height:0.78; color:var(--ink-mute); opacity:0.5; transition:color 240ms ease, opacity 240ms ease; }
+  .brow.on .bletter { color:var(--accent); opacity:1; }
+  .bnamecol { flex:0 0 152px; display:flex; flex-direction:column; gap:2px; }
+  .bname { font-family:'Newsreader',serif; font-weight:500; font-size:1.06rem; letter-spacing:-0.01em; color:var(--ink); line-height:1.05; }
+  .bmeta { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mute); }
+  .bcontrib { font-weight:600; color:var(--ink-mute); transition:color 200ms ease; }
+  .brow.on .bcontrib { color:var(--accent); }
+  .bchips { flex:1 1 300px; display:flex; flex-wrap:wrap; gap:7px; }
+  .bchip {
+    display:inline-flex; align-items:center; gap:9px; padding:8px 13px; border:1px solid var(--rule);
+    background:var(--paper); cursor:pointer; border-radius:6px; text-align:left; color:var(--ink-mid);
+    font-family:'Newsreader',serif; font-size:14.5px; line-height:1.15; transition:all 150ms ease;
+  }
+  .bchip:hover { border-color:var(--ink-mid); background:rgba(14,34,51,0.025); }
+  /* Marker glyph signals control type: ○ radio (pick one) · ☐ checkbox (tick any). */
+  .bchip .mk { flex-shrink:0; width:15px; height:15px; border:1.5px solid var(--ink-mute); display:inline-flex; align-items:center; justify-content:center; transition:all 150ms ease; }
+  .bchip .mk.radio { border-radius:50%; }
+  .bchip .mk.check { border-radius:3px; }
+  .bchip:hover .mk { border-color:var(--ink-mid); }
+  .bchip .clab { display:flex; flex-direction:column; gap:1px; }
+  .bchip .csub { font-size:10.5px; font-style:italic; color:var(--ink-mute); line-height:1.1; }
+  .bchip .cp { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-mute); white-space:nowrap; }
+  .bchip[aria-pressed="true"] { background:var(--ink); border-color:var(--ink); color:var(--paper); }
+  .bchip[aria-pressed="true"] .csub { color:rgba(234,241,246,0.65); }
+  .bchip[aria-pressed="true"] .cp { color:rgba(234,241,246,0.6); }
+  .bchip[aria-pressed="true"] .mk { border-color:var(--accent); background:var(--accent); }
+  .bchip[aria-pressed="true"] .mk.check::after { content:"✓"; color:#fff; font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:600; }
+  .bchip[aria-pressed="true"] .mk.radio::after { content:""; width:6px; height:6px; border-radius:50%; background:#fff; }
+  @media (max-width:520px) { .bnamecol { flex-basis:calc(100% - 42px); } .bchips { flex-basis:100%; } }
+
+  /* ── Result panel ── */
+  .result { position: sticky; top: calc(var(--topbar) + 14px); }
+  @media (max-width: 980px) { .result { position: sticky; top: var(--topbar); order:-1; z-index:20; } }
+  .rcard { border:1.5px solid var(--ink); background:var(--paper); position:relative; padding:18px 20px 16px; }
+  .rcard::before { content:""; position:absolute; top:-1.5px; left:-1.5px; right:-1.5px; height:5px; background:var(--ink-mute); transition:background-color 320ms ease; }
+  .rcard.warranted::before { background:var(--accent); }
+  .rtop { display:flex; align-items:center; gap:16px; }
+  .rnum { font-family:'Newsreader',serif; font-weight:400; font-size:3.6rem; line-height:0.85; letter-spacing:-0.03em; color:var(--ink); min-width:1.6ch; text-align:center; }
+  .rcard.warranted .rnum { color:var(--accent); }
+  .rhead { min-width:0; }
+  .reyebrow { font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-mute); margin-bottom:3px; }
+  .rcard.warranted .reyebrow { color:var(--accent); }
+  .rtitle { font-family:'Newsreader',serif; font-weight:500; font-size:1.45rem; letter-spacing:-0.02em; line-height:1.05; color:var(--ink); }
+  .rbody { font-size:14px; line-height:1.4; color:var(--ink-mid); margin-top:10px; }
+  .rbody strong { color:var(--ink); font-weight:600; }
+  .score-pop { animation: pop 320ms cubic-bezier(0.2,0.7,0.2,1); }
+  @keyframes pop { 0% { opacity:0.3; transform:translateY(5px);} 100% { opacity:1; transform:translateY(0);} }
+
+  .rstats { display:grid; grid-template-columns: repeat(3,1fr); gap:0; margin-top:14px; border-top:1px solid var(--rule); }
+  .rstat { padding:11px 8px 3px; border-right:1px solid var(--rule); text-align:center; }
+  .rstat:last-child { border-right:none; }
+  .rstat-num { font-family:'Newsreader',serif; font-weight:500; font-size:1.5rem; color:var(--accent); line-height:1; letter-spacing:-0.02em; }
+  .rstat-lab { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-mute); margin-top:7px; line-height:1.35; }
+
+  .rhint { margin-top:12px; padding:9px 12px; border-left:3px solid var(--ink-mute); background:rgba(14,34,51,0.03); font-size:13.5px; font-style:italic; color:var(--ink-mid); }
+  .rhint strong { color:var(--accent); font-style:normal; font-weight:600; }
+
+  .ractions { display:flex; gap:8px; margin-top:14px; }
+  .btn { font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; padding:11px 14px; border:1px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer; transition:all 180ms ease; }
+  .btn:hover { background:var(--ink); color:var(--paper); }
+  .btn.primary { flex:1; background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn.primary:hover { background:var(--accent-2); }
+  .btn.ghost { border-color:var(--rule); color:var(--ink-mute); }
+  .btn.ghost:hover { background:transparent; border-color:var(--ink); color:var(--ink); }
+
+  .rnote { margin-top:12px; border-top:1px solid var(--rule); padding-top:10px; }
+  .rnote > summary { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-mute); cursor:pointer; list-style:none; display:flex; align-items:center; gap:7px; }
+  .rnote > summary::-webkit-details-marker { display:none; }
+  .rnote > summary::before { content:"＋"; color:var(--accent); font-size:12px; }
+  .rnote[open] > summary::before { content:"−"; }
+  .clerk-note-body { font-family:'Newsreader',serif; font-size:14.5px; line-height:1.5; color:var(--ink); margin-top:10px; }
+  .clerk-note-body p { margin:0 0 8px; }
+  .clerk-note-body strong { font-weight:600; }
+  .clerk-note-body mark.ink { color:var(--accent); font-weight:600; }
+
+  /* ── Footer strip ── */
+  .footstrip { text-align:center; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-mute); padding:14px 18px 22px; }
+
+  /* ── About modal ── */
+  .modal-backdrop { position:fixed; inset:0; z-index:100; background:rgba(14,34,51,0.45); backdrop-filter:blur(3px); display:flex; align-items:flex-start; justify-content:center; padding:5vh 16px; opacity:0; transition:opacity 220ms ease; }
+  .modal-backdrop.show { opacity:1; }
+  .modal { background:var(--paper); border:1.5px solid var(--ink); max-width:620px; width:100%; max-height:88vh; overflow:auto; position:relative; padding:30px 32px 28px; transform:translateY(10px); transition:transform 260ms cubic-bezier(0.2,0.7,0.2,1); }
+  .modal-backdrop.show .modal { transform:translateY(0); }
+  .modal::before { content:""; position:absolute; top:-1.5px; left:-1.5px; right:-1.5px; height:5px; background:var(--accent); }
+  .modal-close { position:absolute; top:14px; right:16px; width:30px; height:30px; border:1px solid var(--rule); background:transparent; color:var(--ink-mute); font-size:18px; line-height:1; cursor:pointer; border-radius:50%; transition:all 180ms ease; }
+  .modal-close:hover { border-color:var(--ink); color:var(--ink); }
+  .modal h2 { font-family:'Newsreader',serif; font-weight:500; font-size:1.7rem; letter-spacing:-0.02em; margin:0 0 14px; }
+  .modal p { margin:0 0 12px; font-size:15px; line-height:1.55; color:var(--ink-mid); }
+  .modal p strong { color:var(--ink); font-weight:600; }
+  .modal .chips { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); margin:16px 0; }
+  .modal .chip { background:var(--paper); padding:12px; text-align:center; }
+  .modal .chip-n { font-family:'Newsreader',serif; font-size:1.5rem; color:var(--accent); line-height:1; }
+  .modal .chip-l { font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mute); margin-top:7px; line-height:1.35; }
+  .modal .src { border-left:2px solid var(--accent); padding-left:14px; font-size:13.5px; color:var(--ink-mid); margin:14px 0; }
+  .modal .disc { border:1px solid var(--rule); background:rgba(14,34,51,0.02); padding:14px; font-size:13px; color:var(--ink-mid); line-height:1.5; }
+  .modal .cl { margin:16px 0 0; }
+  .modal .cl-list { list-style:none; padding:0; margin:8px 0 0; display:grid; gap:5px; }
+  .modal .cl-list li { position:relative; padding-left:16px; font-size:13.5px; color:var(--ink-mid); line-height:1.4; }
+  .modal .cl-list li::before { content:"—"; position:absolute; left:0; color:var(--ink-mute); }
+
+  /* ── Install prompt ── */
+  .install-card { position:fixed; left:50%; bottom:18px; transform:translateX(-50%) translateY(150%); width:min(420px,calc(100vw - 28px)); z-index:90; background:var(--paper); border:1.5px solid var(--ink); box-shadow:0 18px 50px -12px rgba(14,34,51,0.45); padding:16px 18px; display:grid; grid-template-columns:44px 1fr; gap:14px; align-items:center; transition:transform 480ms cubic-bezier(0.2,0.7,0.2,1), opacity 380ms ease; opacity:0; }
+  .install-card.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  .install-card::before { content:""; position:absolute; top:-1.5px; left:-1.5px; right:-1.5px; height:5px; background:var(--accent); }
+  .install-icon { width:44px; height:44px; border-radius:10px; display:block; }
+  .install-title { font-family:'Newsreader',serif; font-size:1.1rem; font-weight:600; color:var(--ink); line-height:1.2; }
+  .install-sub { font-size:13px; color:var(--ink-mid); margin-top:2px; line-height:1.4; }
+  .install-actions { grid-column:1/-1; display:flex; gap:9px; justify-content:flex-end; margin-top:2px; }
+  .install-btn { font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; padding:9px 16px; cursor:pointer; border:1px solid var(--ink); background:transparent; color:var(--ink); transition:all 180ms ease; }
+  .install-btn:hover { background:rgba(14,34,51,0.06); }
+  .install-btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .install-btn.primary:hover { background:var(--accent-2); }
+  .install-ios-steps { grid-column:1/-1; font-size:13px; color:var(--ink-mid); line-height:1.5; margin-top:2px; }
+  .install-ios-steps b { color:var(--ink); }
+  .ios-share { display:inline-block; width:13px; height:13px; vertical-align:-2px; }
+
+  /* ── Domain glyphs ── small line icon per row, lights up with the spine letter */
+  .bname-row { display:flex; align-items:center; gap:9px; }
+  .bicon { flex:0 0 auto; width:17px; height:17px; color:var(--ink-mute); opacity:0.72; transition:color var(--t-med) var(--ease), opacity var(--t-med) var(--ease); }
+  .bicon svg { width:100%; height:100%; display:block; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .brow.on .bicon { color:var(--accent); opacity:1; }
+
+  /* ── Verdict: three states (empty · below · warranted-filled) ── */
+  .vbadge { display:inline-block; margin-top:7px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#fff; background:var(--accent); padding:4px 10px; border-radius:999px; }
+  .rcard.warranted { background:linear-gradient(180deg,#E7F1FB 0%, var(--paper) 58%); box-shadow:0 16px 44px -22px rgba(31,116,196,0.55); }
+  .rcard.warranted .rtop { background:linear-gradient(180deg, rgba(31,116,196,0.10), rgba(31,116,196,0)); margin:-4px -6px 0; padding:8px 6px 4px; border-radius:10px; }
+  .rcard.verdict-beat { animation: vbeat 640ms var(--ease); }
+  @keyframes vbeat {
+    0%   { transform:scale(1);     box-shadow:0 0 0 0 rgba(31,116,196,0.0); }
+    22%  { transform:scale(1.015); box-shadow:0 0 0 7px rgba(31,116,196,0.14); }
+    100% { transform:scale(1);     box-shadow:0 16px 44px -22px rgba(31,116,196,0.55); }
+  }
+
+  /* ── Cold-start launch screen ── pacemaker slides into the TYRX envelope, seam seals.
+     Shown once per session (sessionStorage); the OS shows it as the PWA launch image too,
+     so it costs ~0 perceived speed. Tap to skip; static + auto-clears under reduced motion / no-JS. */
+  html.splash-seen #splash { display:none !important; }
+  #splash {
+    position:fixed; inset:0; z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px;
+    background:radial-gradient(125% 100% at 50% 36%, #F3F8FC 0%, var(--paper) 52%, var(--paper-2) 100%);
+    animation: splash-autohide 0.01s linear 2200ms forwards; /* belt-and-braces: clears even if JS never runs */
+  }
+  #splash.done { opacity:0; pointer-events:none; transition:opacity 400ms var(--ease); }
+  @keyframes splash-autohide { to { opacity:0; visibility:hidden; pointer-events:none; } }
+  .spl-art { width:min(62vw,228px); height:auto; overflow:visible; }
+  .spl-env-body { stroke:var(--accent); stroke-width:2.4; fill:none; stroke-linecap:round; stroke-dasharray:100; stroke-dashoffset:100; animation: spl-draw 440ms var(--ease) 60ms forwards; }
+  .spl-mesh { stroke:var(--ink-mute); stroke-width:1.2; opacity:0; animation: spl-fade 260ms ease 280ms forwards; }
+  .spl-pacer { opacity:0; transform:translateX(-24px); animation: spl-slide 380ms var(--ease) 180ms forwards; }
+  .spl-pacer rect, .spl-pacer path { fill:none; stroke:var(--ink); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+  .spl-pacer .pacer-body { fill:var(--paper); }
+  .spl-seam { stroke:var(--accent); stroke-width:2.6; stroke-linecap:round; opacity:0; transform:scaleX(0); transform-box:fill-box; transform-origin:center; animation: spl-seal 260ms var(--ease) 470ms forwards; }
+  .spl-word { display:flex; flex-direction:column; align-items:center; gap:5px; opacity:0; transform:translateY(9px); animation: spl-rise 340ms var(--ease) 480ms forwards; }
+  .spl-title { font-family:'Newsreader',serif; font-weight:600; font-size:1.5rem; letter-spacing:-0.01em; color:var(--ink); }
+  .spl-sub { font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-mute); }
+  @keyframes spl-draw { to { stroke-dashoffset:0; } }
+  @keyframes spl-fade { to { opacity:0.55; } }
+  @keyframes spl-slide { to { opacity:1; transform:translateX(0); } }
+  @keyframes spl-seal { 0% { opacity:0; transform:scaleX(0); } 100% { opacity:1; transform:scaleX(1); } }
+  @keyframes spl-rise { to { opacity:1; transform:translateY(0); } }
+
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:0.001ms !important; transition-duration:0.001ms !important; } }
+  @media (max-width: 420px) { .rnum { font-size:3rem; } .rstat-num { font-size:1.3rem; } }
+</style>
+
+<!-- Gate the launch screen to once per session before first paint (no flash on re-visit). -->
+<script>try{if(sessionStorage.getItem('blister-splash-seen')==='1')document.documentElement.classList.add('splash-seen');}catch(e){}</script>
+</head>
+<body>
+
+<!-- ── Cold-start launch screen ── -->
+<div id="splash" role="presentation" aria-hidden="true">
+  <svg class="spl-art" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- TYRX antimicrobial envelope (pocket + mesh) -->
+    <g class="spl-env">
+      <rect class="spl-env-body" x="40" y="60" width="120" height="56" rx="14" pathLength="100"/>
+      <g class="spl-mesh">
+        <path d="M52 112 L86 64"/>
+        <path d="M72 114 L106 66"/>
+        <path d="M92 114 L126 66"/>
+        <path d="M112 114 L146 66"/>
+      </g>
+    </g>
+    <!-- Pacemaker can sliding in -->
+    <g class="spl-pacer">
+      <rect class="pacer-body" x="66" y="74" width="46" height="30" rx="9"/>
+      <rect x="108" y="80" width="12" height="18" rx="3"/>
+      <path d="M120 86 C 146 78 152 96 142 108"/>
+    </g>
+    <!-- Seal seam closing the opening -->
+    <line class="spl-seam" x1="50" y1="60" x2="150" y2="60"/>
+  </svg>
+  <div class="spl-word">
+    <span class="spl-title">BLISTER Score</span>
+    <span class="spl-sub">West Suffolk Cardiology</span>
+  </div>
+</div>
+
+<!-- ── Top bar ── -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">B</span>
+    <span class="brand-title">BLISTER Score</span>
+    <span class="brand-sub">CIED infection → TYRX envelope · West Suffolk Cardiology</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="tb-ver">v1.0.0</span>
+    <button class="tb-btn" id="about-btn">About</button>
+  </div>
+</header>
+
+<!-- ── App ── -->
+<main class="app">
+  <section class="domains">
+    <div class="blist" id="bl-groups"><!-- domains injected --></div>
+  </section>
+
+  <aside class="result">
+    <div class="rcard" id="verdict">
+      <div class="rtop">
+        <div class="rnum" id="bl-score">0</div>
+        <div class="rhead">
+          <div class="reyebrow" id="verdict-eyebrow">Antimicrobial envelope</div>
+          <div class="rtitle" id="verdict-title">Build the score</div>
+          <span class="vbadge" id="verdict-badge" hidden>Envelope warranted</span>
+        </div>
+      </div>
+      <div class="rbody" id="verdict-body">Tap the factors that apply — the score and verdict update live.</div>
+
+      <div class="rstats" id="verdict-stats" hidden>
+        <div class="rstat"><div class="rstat-num">≈30%</div><div class="rstat-lab">Fewer CIED infections (modelled)</div></div>
+        <div class="rstat"><div class="rstat-num">31</div><div class="rstat-lab">NNT to prevent one</div></div>
+        <div class="rstat"><div class="rstat-num">£18k</div><div class="rstat-lab">/ QALY · within NICE</div></div>
+      </div>
+      <div class="rhint" id="threshold-hint" hidden></div>
+
+      <div class="ractions">
+        <button class="btn primary" id="copy-note-btn">Copy clerk note ↗</button>
+        <button class="btn ghost" id="bl-reset">Reset</button>
+      </div>
+
+      <details class="rnote">
+        <summary>Clerk note</summary>
+        <div class="clerk-note-body" id="clerk-note-body"></div>
+      </details>
+    </div>
+  </aside>
+</main>
+
+<footer class="footstrip">West Suffolk NHS Foundation Trust · Cardiology · BLISTER Score v1.0.0 · Decision support · not patient-facing</footer>
+
+
+<!-- ── About modal ── -->
+<div class="modal-backdrop" id="about-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="About the BLISTER score">
+    <button class="modal-close" id="about-close" aria-label="Close">×</button>
+    <h2>About the BLISTER score</h2>
+    <p>CIED infection is a serious, costly complication of pacemaker, ICD and CRT procedures, and its incidence is rising. The <strong>TYRX antimicrobial envelope</strong> reduces infection in high-risk patients (WRAP-IT trial) but is too costly for routine use — so a way to target it is needed.</p>
+    <p>The <strong>BLISTER score</strong> (Maclean et al, 2024) was derived from 7,383 procedures at St Bartholomew's Hospital and externally validated in standard- and high-risk cohorts. It extends the older PADIT score and out-performs it (AUC 0.82 vs 0.71). A <strong>score of ≥6</strong> is the threshold at which fitting an envelope is cost-effective within NICE willingness-to-pay thresholds: ~30% relative reduction in infection, a number needed to treat of 31, and £18,446 per QALY.</p>
+    <div class="chips">
+      <div class="chip"><div class="chip-n">12,198</div><div class="chip-l">Procedures, derivation + validation</div></div>
+      <div class="chip"><div class="chip-n">0.82</div><div class="chip-l">AUC · BLISTER (vs 0.71 PADIT)</div></div>
+      <div class="chip"><div class="chip-n">≥6</div><div class="chip-l">Envelope threshold</div></div>
+    </div>
+    <div class="src"><strong>Source.</strong> Maclean E, Mahtani K, Honarbakhsh S, et al. BLISTER Score: A Novel, Externally Validated Tool for Predicting CIED Infections, and Its Cost-Utility Implications for Antimicrobial Envelope Use. Circ Arrhythm Electrophysiol. 2024;17:e012446. DOI: 10.1161/CIRCEP.123.012446.</div>
+    <div class="disc"><strong>Disclaimer.</strong> Clinical decision support for West Suffolk Cardiology, reproducing a published, peer-reviewed score for convenience at the point of care. It does not replace clinical judgement or local infection-prevention policy. No patient data is stored or transmitted — everything runs in your browser.</div>
+    <div class="cl">
+      <div class="eyebrow">Version · v1.0.0 · June 2026</div>
+      <ul class="cl-list">
+        <li>Initial release — full BLISTER calculator across all seven domains with live scoring.</li>
+        <li>Antimicrobial-envelope verdict at the ≥6 threshold, with projected infection reduction, NNT and cost per QALY.</li>
+        <li>Copyable clerk note; installable as an offline app (PWA) with West Suffolk branding.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── Install prompt ── -->
+<div class="install-card" id="install-card" role="dialog" aria-label="Install BLISTER Score" hidden>
+  <img class="install-icon" src="icon-192.png" alt="" />
+  <div>
+    <div class="install-title">Install BLISTER Score</div>
+    <div class="install-sub" id="install-sub">Add it to your home screen for one-tap, offline access at the bedside.</div>
+  </div>
+  <div class="install-actions" id="install-actions">
+    <button class="install-btn" id="install-dismiss">Not now</button>
+    <button class="install-btn primary" id="install-go">Install</button>
+  </div>
+  <div class="install-ios-steps" id="install-ios-steps" hidden>
+    Tap the <b>Share</b>
+    <svg class="ios-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M6 12v7a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-7"/></svg>
+    button, then <b>Add to Home Screen</b>.
+  </div>
+</div>
+
+
+<script>
+/* =============================================================
+   BLISTER score model
+   ============================================================= */
+const GROUPS = [
+  { id:'B', letter:'B', name:'Blood results', mode:'multi', crits:[
+    { key:'egfr', pts:2, label:'eGFR < 30 mL/min/1.73m²', sub:'at procedure' },
+    { key:'crp',  pts:1, label:'CRP ≥ 50 mg/L', sub:'within 24 h' },
+  ]},
+  { id:'L', letter:'L', name:'Long procedure', mode:'multi', crits:[
+    { key:'long', pts:2, label:'Pocket open ≥ 120 min', sub:'top-quartile duration' },
+  ]},
+  { id:'I', letter:'I', name:'Immunosuppressed', mode:'multi', crits:[
+    { key:'immuno', pts:2, label:'Immunosuppressed', sub:'steroids / immunosuppressant, or comorbidity (e.g. HIV)' },
+  ]},
+  { id:'S', letter:'S', name:'Sixty or younger', mode:'single', crits:[
+    { key:'u60',   pts:2, label:'Under 60 years' },
+    { key:'s6069', pts:1, label:'60 – 69 years' },
+  ]},
+  { id:'T', letter:'T', name:'Type of procedure', mode:'single', crits:[
+    { key:'ppm',  pts:0, label:'PPM implant / box change' },
+    { key:'icd',  pts:1, label:'ICD implant / box change' },
+    { key:'crt',  pts:4, label:'CRT implant / box change' },
+    { key:'lead', pts:4, label:'New / revised lead', sub:'without extraction' },
+    { key:'ext',  pts:6, label:'Lead extraction' },
+  ]},
+  { id:'E', letter:'E', name:'Early reintervention', mode:'multi', crits:[
+    { key:'early', pts:7, label:'Same pocket within 2 years' },
+  ]},
+  { id:'R', letter:'R', name:'Repeat procedure', mode:'single', crits:[
+    { key:'r1', pts:2, label:'1 previous procedure' },
+    { key:'r2', pts:4, label:'2+ previous procedures' },
+  ]},
+];
+
+/* Line glyphs per domain — aid at-a-glance scanning; they light up with the row. */
+const ICONS = {
+  B: '<svg viewBox="0 0 24 24"><path d="M12 3.2s5.5 6 5.5 10.3a5.5 5.5 0 0 1-11 0C6.5 9.2 12 3.2 12 3.2z"/></svg>',
+  L: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12.5" r="8"/><path d="M12 8v4.7l3 1.7"/></svg>',
+  I: '<svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3z"/><path d="M9 11.5h6"/></svg>',
+  S: '<svg viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 3c0 4 8 4.5 8 9s-8 5-8 9M16 3c0 4-8 4.5-8 9s8 5 8 9"/></svg>',
+  T: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M6 12.5h3l1.6-3.4 2.1 6.4 1.6-3H18"/></svg>',
+  E: '<svg viewBox="0 0 24 24"><path d="M4 9a8 8 0 1 1-1.2 4.2"/><path d="M3.5 4.5V9H8"/></svg>',
+  R: '<svg viewBox="0 0 24 24"><path d="M17 3l3.3 3.2L17 9.4"/><path d="M3.5 11.2V9.6A3.4 3.4 0 0 1 6.9 6.2h13.4"/><path d="M7 21l-3.3-3.2L7 14.6"/><path d="M20.5 12.8v1.6a3.4 3.4 0 0 1-3.4 3.4H3.7"/></svg>',
+};
+
+const THRESHOLD = 6;
+const ALL = {};
+GROUPS.forEach(g => g.crits.forEach(c => { ALL[c.key] = { ...c, groupId:g.id }; }));
+const selected = new Set();
+
+/* ---- Build domain cards ---- */
+const groupsEl = document.getElementById('bl-groups');
+GROUPS.forEach(g => {
+  const row = document.createElement('div');
+  row.className = 'brow';
+  row.dataset.row = g.id;
+  const mk = g.mode === 'single' ? 'radio' : 'check';
+  const chips = g.crits.map(c => `
+    <button type="button" class="bchip" data-key="${c.key}" data-group="${g.id}" aria-pressed="false"${c.sub ? ` title="${c.sub}"` : ''}>
+      <span class="mk ${mk}"></span>
+      <span class="clab"><span>${c.label}</span>${c.sub ? `<span class="csub">${c.sub}</span>` : ''}</span>
+      <span class="cp">${c.pts > 0 ? '+' + c.pts : '0'}</span>
+    </button>`).join('');
+  row.innerHTML = `
+    <div class="bletter">${g.letter}</div>
+    <div class="bnamecol">
+      <span class="bname-row"><span class="bicon">${ICONS[g.id] || ''}</span><span class="bname">${g.name}</span></span>
+      <span class="bmeta">${g.mode === 'single' ? 'choose one · ' : ''}<span class="bcontrib" data-contrib="${g.id}">—</span></span>
+    </div>
+    <div class="bchips">${chips}</div>`;
+  groupsEl.appendChild(row);
+});
+
+/* ---- Interaction ---- */
+groupsEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.bchip');
+  if (!btn) return;
+  const key = btn.dataset.key;
+  const g = GROUPS.find(gr => gr.id === btn.dataset.group);
+  if (g.mode === 'single') {
+    const wasOn = selected.has(key);
+    g.crits.forEach(c => selected.delete(c.key));
+    if (!wasOn) selected.add(key);
+  } else {
+    selected.has(key) ? selected.delete(key) : selected.add(key);
+  }
+  groupsEl.querySelectorAll(`.bchip[data-group="${g.id}"]`).forEach(b => {
+    b.setAttribute('aria-pressed', selected.has(b.dataset.key) ? 'true' : 'false');
+  });
+  render();
+});
+
+/* ---- Score + render ---- */
+const scoreEl = document.getElementById('bl-score');
+const groupPoints = g => g.crits.reduce((s,c) => s + (selected.has(c.key) ? c.pts : 0), 0);
+const totalScore = () => { let s = 0; selected.forEach(k => s += ALL[k].pts); return s; };
+
+function render() {
+  const score = totalScore();
+  if (scoreEl.textContent !== String(score)) {
+    scoreEl.textContent = score;
+    scoreEl.classList.remove('score-pop'); void scoreEl.offsetWidth; scoreEl.classList.add('score-pop');
+  }
+  GROUPS.forEach(g => {
+    const pts = groupPoints(g);
+    const hasSel = g.crits.some(c => selected.has(c.key));
+    groupsEl.querySelector(`[data-contrib="${g.id}"]`).textContent = hasSel ? (pts > 0 ? '+' + pts : '0') : '—';
+    groupsEl.querySelector(`[data-row="${g.id}"]`).classList.toggle('on', pts > 0);
+  });
+  renderVerdict(score);
+  renderClerkNote(score);
+}
+
+/* ---- Verdict ---- */
+const verdictEl = document.getElementById('verdict');
+const vEyebrow = document.getElementById('verdict-eyebrow');
+const vTitle = document.getElementById('verdict-title');
+const vBody = document.getElementById('verdict-body');
+const vStats = document.getElementById('verdict-stats');
+const hint = document.getElementById('threshold-hint');
+const vBadge = document.getElementById('verdict-badge');
+let prevW = false;
+
+function renderVerdict(score) {
+  const w = score >= THRESHOLD;
+  verdictEl.classList.toggle('warranted', w);
+  verdictEl.classList.toggle('state-below', !w && score > 0);
+  verdictEl.classList.toggle('state-empty', score === 0);
+  vEyebrow.textContent = w ? 'Antimicrobial envelope · warranted' : 'Antimicrobial envelope';
+  if (vBadge) vBadge.hidden = !w;
+  /* One-shot 'beat' when the score first crosses the threshold. */
+  if (w && !prevW) {
+    verdictEl.classList.remove('verdict-beat'); void verdictEl.offsetWidth; verdictEl.classList.add('verdict-beat');
+  }
+  prevW = w;
+  if (w) {
+    vTitle.textContent = 'Fit a TYRX envelope';
+    vBody.innerHTML = `Score <strong>${score}</strong> — at or above the ≥6 threshold. An envelope is cost-effective at this risk level.`;
+    vStats.hidden = false; hint.hidden = true;
+  } else {
+    vStats.hidden = true;
+    if (score === 0) {
+      vTitle.textContent = 'Build the score';
+      vBody.innerHTML = 'Tap the factors that apply — the score and verdict update live.';
+      hint.hidden = true;
+    } else {
+      vTitle.textContent = 'No envelope by score';
+      vBody.innerHTML = `Score <strong>${score}</strong> — below the ≥6 threshold. Standard peri-procedural antibiotics.`;
+      const gap = THRESHOLD - score;
+      hint.hidden = false;
+      hint.innerHTML = `<strong>${gap}</strong> more point${gap === 1 ? '' : 's'} to reach the envelope threshold.`;
+    }
+  }
+}
+
+/* ---- Clerk note ---- */
+const noteEl = document.getElementById('clerk-note-body');
+function contributors() {
+  const parts = [];
+  GROUPS.forEach(g => g.crits.forEach(c => { if (selected.has(c.key) && c.pts > 0) parts.push(`${c.label.toLowerCase()} (+${c.pts})`); }));
+  return parts;
+}
+function renderClerkNote(score) {
+  const parts = contributors();
+  let html = `<p>CIED infection risk by the <strong>BLISTER score</strong> (Maclean et al, 2024): <strong>${score}</strong>${parts.length ? `, from ${parts.join(', ')}` : ' (no risk factors selected)'}.</p>`;
+  if (score >= THRESHOLD) {
+    html += `<p>≥6 — a <mark class="ink">TYRX antimicrobial envelope</mark> is cost-effective (≈30% relative reduction in infection; NNT 31; £18,446/QALY, within NICE). <mark class="ink">Plan: fit an envelope</mark> with standard peri-procedural antibiotics.</p>`;
+  } else {
+    html += `<p>Below the ≥6 threshold. <mark class="ink">Plan: no envelope</mark> on score grounds — standard peri-procedural antibiotic prophylaxis. Re-score if the planned procedure changes.</p>`;
+  }
+  noteEl.innerHTML = html;
+}
+function noteAsText(score) {
+  const parts = contributors();
+  let t = `CIED infection risk by the BLISTER score (Maclean et al, 2024): ${score}${parts.length ? ', from ' + parts.join(', ') : ' (no risk factors selected)'}.\n\n`;
+  t += score >= THRESHOLD
+    ? `>=6 — a TYRX antimicrobial envelope is cost-effective (~30% relative reduction in infection; NNT 31; £18,446/QALY, within NICE). Plan: fit an envelope with standard peri-procedural antibiotics.`
+    : `Below the >=6 threshold. Plan: no envelope on score grounds — standard peri-procedural antibiotic prophylaxis. Re-score if the planned procedure changes.`;
+  t += `\n\nReference: Maclean E et al. Circ Arrhythm Electrophysiol. 2024;17:e012446.`;
+  return t;
+}
+
+/* ---- Copy + reset ---- */
+document.getElementById('copy-note-btn').addEventListener('click', (e) => {
+  const btn = e.currentTarget;
+  navigator.clipboard.writeText(noteAsText(totalScore())).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied ✓'; btn.style.background = 'var(--ok)'; btn.style.borderColor = 'var(--ok)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.borderColor = ''; }, 1700);
+  }).catch(() => alert('Copy failed — expand the clerk note and copy manually.'));
+});
+document.getElementById('bl-reset').addEventListener('click', () => {
+  selected.clear();
+  groupsEl.querySelectorAll('.bchip').forEach(b => b.setAttribute('aria-pressed', 'false'));
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+render();
+
+/* ---- About modal ---- */
+const aboutModal = document.getElementById('about-modal');
+function openAbout() { aboutModal.hidden = false; requestAnimationFrame(() => aboutModal.classList.add('show')); }
+function closeAbout() { aboutModal.classList.remove('show'); setTimeout(() => { aboutModal.hidden = true; }, 220); }
+document.getElementById('about-btn').addEventListener('click', openAbout);
+document.getElementById('about-close').addEventListener('click', closeAbout);
+aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) closeAbout(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !aboutModal.hidden) closeAbout(); });
+
+/* =============================================================
+   Cold-start launch screen controller
+   ============================================================= */
+(() => {
+  let splash = document.getElementById('splash');
+  if (!splash) return;
+  // Already shown this session → the head script hid it; just drop it.
+  if (document.documentElement.classList.contains('splash-seen')) { splash.remove(); return; }
+  try { sessionStorage.setItem('blister-splash-seen', '1'); } catch {}
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let dismissed = false;
+  const done = () => {
+    if (dismissed || !splash) return;
+    dismissed = true;
+    splash.classList.add('done');
+    splash.removeEventListener('click', done);
+    setTimeout(() => { if (splash && splash.parentNode) splash.remove(); splash = null; }, 440);
+  };
+  splash.addEventListener('click', done);          // tap to skip
+  setTimeout(done, reduce ? 240 : 1150);           // motion ~0.5s + a short readable beat
+})();
+
+/* =============================================================
+   PWA — service worker + install prompt
+   ============================================================= */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+(() => {
+  const card = document.getElementById('install-card');
+  const goBtn = document.getElementById('install-go');
+  const dismissBtn = document.getElementById('install-dismiss');
+  const iosSteps = document.getElementById('install-ios-steps');
+  const actions = document.getElementById('install-actions');
+  const DISMISS_KEY = 'blister-install-dismissed';
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  let deferred = null;
+  const dismissed = () => { try { return localStorage.getItem(DISMISS_KEY) === '1'; } catch { return false; } };
+  const remember = () => { try { localStorage.setItem(DISMISS_KEY, '1'); } catch {} };
+  const show = () => { card.hidden = false; requestAnimationFrame(() => card.classList.add('show')); };
+  const hide = () => { card.classList.remove('show'); setTimeout(() => { card.hidden = true; }, 480); };
+  dismissBtn.addEventListener('click', () => { remember(); hide(); });
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; if (isStandalone || dismissed()) return; setTimeout(show, 2600); });
+  goBtn.addEventListener('click', async () => { if (!deferred) return; hide(); deferred.prompt(); try { await deferred.userChoice; } catch {} deferred = null; });
+  window.addEventListener('appinstalled', () => { remember(); hide(); });
+  if (isIOS && !isStandalone && !dismissed()) {
+    actions.style.display = 'none';
+    iosSteps.hidden = false;
+    const close = document.createElement('button');
+    close.className = 'install-btn'; close.textContent = 'Got it';
+    close.style.gridColumn = '1 / -1'; close.style.justifySelf = 'flex-end'; close.style.marginTop = '6px';
+    close.addEventListener('click', () => { remember(); hide(); });
+    card.appendChild(close);
+    setTimeout(show, 2600);
+  }
+})();
+</script>
+</body>
+</html>

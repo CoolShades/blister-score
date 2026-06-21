@@ -1,0 +1,19 @@
+{
+  "name": "BLISTER Score — CIED Infection Risk",
+  "short_name": "BLISTER",
+  "description": "Calculate the BLISTER score for cardiac implantable electronic device (CIED) infection risk and decide on TYRX antimicrobial envelope use. West Suffolk NHS Foundation Trust Cardiology.",
+  "id": "/blister-score/",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#EAF1F6",
+  "theme_color": "#EAF1F6",
+  "categories": ["medical", "health", "productivity"],
+  "lang": "en-GB",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,15 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Throwaway preview / screenshot artifacts
+_preview.html
+_shot_*.png
+
+# Python
+__pycache__/
+*.pyc
+
+# Claude Code local config (machine-specific)
+.claude/settings.local.json
