@@ -1,7 +1,7 @@
 /* BLISTER Score — service worker
    Cache-first for the app shell so it works offline once installed. Bump
    CACHE when shipping a new version to force clients to refresh. */
-const CACHE = 'blister-v1.0.0';
+const CACHE = 'blister-v1.1.0';
 
 const CORE = [
   './',

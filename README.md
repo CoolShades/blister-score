@@ -67,4 +67,4 @@ local infection-prevention policy.
 
 ## Version
 
-**v1.0.0** — June 2026. See the in-app *Changelog* section.
+**v1.1.0** — June 2026. See the in-app *Changelog* section.

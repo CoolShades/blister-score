@@ -36,8 +36,8 @@
     --rule:#B9C9D6; --accent:#1F74C4; --accent-2:#2A8BD4; --ok:#2E8B7B; --topbar:54px;
     /* motion tokens — shared easing + timing so animations feel like one system */
     --ease:cubic-bezier(0.2,0.7,0.2,1); --t-fast:150ms; --t-med:240ms; --t-slow:420ms;
-    /* launch-screen tokens (TYRX warm accent + its own easing; germ = repelled pathogen) */
-    --paper-hi:#F3F8FC; --tyrx:#DD4F1B; --tyrx-2:#EA6E3C; --spl-ease:cubic-bezier(0.45,0,0.25,1); --germ:#C26A72;
+    /* launch-screen tokens (TYRX warm accent + its own easing; germ = repelled pathogen; field = light orange shield) */
+    --paper-hi:#F3F8FC; --tyrx:#DD4F1B; --tyrx-2:#EA6E3C; --spl-ease:cubic-bezier(0.45,0,0.25,1); --germ:#C26A72; --field:#EBA577;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
@@ -47,6 +47,7 @@
     font-feature-settings: "kern" 1, "liga" 1, "onum" 1;
     -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     font-size: 16px; line-height: 1.45;
+    display: flex; flex-direction: column; min-height: 100vh;  /* sticky footer */
   }
   .mono { font-family: 'JetBrains Mono', monospace; }
   .eyebrow { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-mute); }
@@ -74,22 +75,40 @@
   @media (max-width: 480px) { .tb-ver { display:none; } }
 
   /* ── App layout ── */
-  .app { display:grid; grid-template-columns: 1fr 340px; gap:20px; align-items:start; max-width:1380px; margin:0 auto; padding:16px 18px 22px; }
+  .app { display:grid; grid-template-columns: 1fr 340px; gap:20px; align-items:start; max-width:1380px; width:100%; margin:0 auto; padding:16px 18px 22px; flex:1 0 auto; }
   @media (max-width: 980px) { .app { grid-template-columns: 1fr; gap:14px; } }
 
   .domains { min-width:0; }
   /* BLISTER acronym spine — letters run down the left, lighting up as the score builds. */
   .blist { border:1px solid var(--rule); background:var(--paper); padding:0 22px; }
-  .brow { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; padding:10px 0; border-bottom:1px solid var(--rule); }
+  .brow { display:grid; grid-template-columns:30px minmax(0,1fr); column-gap:18px; row-gap:11px; align-items:start; padding:15px 0; border-bottom:1px solid var(--rule); }
   .brow:last-child { border-bottom:none; }
-  .bletter { flex:0 0 auto; width:26px; text-align:center; font-family:'Newsreader',serif; font-style:italic; font-weight:300; font-size:2.4rem; line-height:0.78; color:var(--ink-mute); opacity:0.5; transition:color 240ms ease, opacity 240ms ease; }
+  .bletter { grid-column:1; grid-row:1 / span 2; align-self:start; position:relative; text-align:center; font-family:'Newsreader',serif; font-style:italic; font-weight:300; font-size:2.2rem; line-height:0.9; color:var(--ink-mute); opacity:0.5; transition:color 240ms ease, opacity 240ms ease; }
   .brow.on .bletter { color:var(--accent); opacity:1; }
-  .bnamecol { flex:0 0 152px; display:flex; flex-direction:column; gap:2px; }
+  /* score badge — sits at the BOTTOM-right of the letter, like an app notification badge */
+  .bbadge { position:absolute; bottom:-4px; right:-7px; min-width:17px; height:17px; padding:0 4px; box-sizing:border-box; border-radius:999px; background:var(--accent); color:#fff; font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:600; display:flex; align-items:center; justify-content:center; line-height:1; opacity:0; transform:scale(0.4); transition:opacity 180ms ease, transform 240ms cubic-bezier(0.2,0.9,0.3,1.5); }
+  .bbadge.show { opacity:1; transform:scale(1); }
+  /* Rainbow flourish — each spine letter flashes a muted hue in sequence when the calculator is revealed. */
+  .bletter.flash { animation: spine-flash 760ms ease; }
+  @keyframes spine-flash {
+    0%   { color:var(--ink-mute); opacity:0.5; transform:scale(1); }
+    20%  { color:var(--flash); opacity:1; transform:scale(1.16); }
+    46%  { color:var(--flash); opacity:1; transform:scale(1.04); }
+    100% { color:var(--ink-mute); opacity:0.5; transform:scale(1); }
+  }
+  [data-row="B"] .bletter { --flash:#C0564E; } /* red */
+  [data-row="L"] .bletter { --flash:#C67C3C; } /* orange */
+  [data-row="I"] .bletter { --flash:#AC9636; } /* yellow (muted gold) */
+  [data-row="S"] .bletter { --flash:#5C9466; } /* green */
+  [data-row="T"] .bletter { --flash:#3E7CB1; } /* blue */
+  [data-row="E"] .bletter { --flash:#5C5FA0; } /* indigo */
+  [data-row="R"] .bletter { --flash:#86609E; } /* violet */
+  .bnamecol { grid-column:2; grid-row:1; display:flex; flex-direction:column; gap:2px; padding-top:2px; }
   .bname { font-family:'Newsreader',serif; font-weight:500; font-size:1.06rem; letter-spacing:-0.01em; color:var(--ink); line-height:1.05; }
   .bmeta { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mute); }
   .bcontrib { font-weight:600; color:var(--ink-mute); transition:color 200ms ease; }
   .brow.on .bcontrib { color:var(--accent); }
-  .bchips { flex:1 1 300px; display:flex; flex-wrap:wrap; gap:7px; }
+  .bchips { grid-column:2; grid-row:2; display:flex; flex-wrap:wrap; gap:8px; align-content:start; }
   .bchip {
     display:inline-flex; align-items:center; gap:9px; padding:8px 13px; border:1px solid var(--rule);
     background:var(--paper); cursor:pointer; border-radius:6px; text-align:left; color:var(--ink-mid);
@@ -110,11 +129,23 @@
   .bchip[aria-pressed="true"] .mk { border-color:var(--accent); background:var(--accent); }
   .bchip[aria-pressed="true"] .mk.check::after { content:"✓"; color:#fff; font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:600; }
   .bchip[aria-pressed="true"] .mk.radio::after { content:""; width:6px; height:6px; border-radius:50%; background:#fff; }
-  @media (max-width:520px) { .bnamecol { flex-basis:calc(100% - 42px); } .bchips { flex-basis:100%; } }
 
   /* ── Result panel ── */
   .result { position: sticky; top: calc(var(--topbar) + 14px); }
-  @media (max-width: 980px) { .result { position: sticky; top: var(--topbar); order:-1; z-index:20; } }
+  /* Narrow: the result/verdict floats as a card pinned to the bottom of the screen. */
+  @media (max-width: 980px) {
+    .result { position:fixed; left:0; right:0; bottom:0; top:auto; z-index:50; order:0; padding:0 12px 8px; pointer-events:none; }
+    .footstrip { position:fixed; left:0; right:0; bottom:0; z-index:48; background:var(--paper); border-top:1px solid var(--rule); padding:9px 18px calc(9px + env(safe-area-inset-bottom)); }
+    .result .rcard { pointer-events:auto; display:flex; align-items:center; gap:14px; padding:10px 14px; border-radius:16px; box-shadow:0 16px 44px -10px rgba(14,34,51,0.5); }
+    .result .rcard::before { left:0; right:0; top:0; border-radius:16px 16px 0 0; }
+    .result .rtop { flex:1; min-width:0; gap:12px; }
+    .result .rnum { font-size:2.4rem; line-height:0.85; }
+    .result .reyebrow { display:none; }
+    .result .rtitle { font-size:1.16rem; }
+    .result .vbadge { display:none; }
+    .result .rbody, .result .rstats, .result .rhint { display:none; }
+    .result .ractions { margin-top:0; flex-shrink:0; }
+  }
   .rcard { border:1.5px solid var(--ink); background:var(--paper); position:relative; padding:18px 20px 16px; }
   .rcard::before { content:""; position:absolute; top:-1.5px; left:-1.5px; right:-1.5px; height:5px; background:var(--ink-mute); transition:background-color 320ms ease; }
   .rcard.warranted::before { background:var(--accent); }
@@ -158,7 +189,7 @@
   .clerk-note-body mark.ink { color:var(--accent); font-weight:600; }
 
   /* ── Footer strip ── */
-  .footstrip { text-align:center; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-mute); padding:14px 18px 22px; }
+  .footstrip { text-align:center; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-mute); padding:14px 18px 22px; flex-shrink:0; }
 
   /* ── About modal ── */
   .modal-backdrop { position:fixed; inset:0; z-index:100; background:rgba(14,34,51,0.45); backdrop-filter:blur(3px); display:flex; align-items:flex-start; justify-content:center; padding:5vh 16px; opacity:0; transition:opacity 220ms ease; }
@@ -230,7 +261,7 @@
   #splash.done { transform:translateY(-100%); pointer-events:none; box-shadow:0 22px 55px -8px rgba(14,34,51,0.30); transition:transform 560ms cubic-bezier(0.65,0,0.35,1); }
 
   .spl-stage { display:flex; flex-direction:column; align-items:center; gap:34px; }
-  .spl-art { position:relative; width:min(92vw,720px); aspect-ratio:240/160; }
+  .spl-art { position:relative; width:min(86vw,560px); aspect-ratio:240/160; }
   .spl-layer { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
 
   /* soft pocket bed behind the device */
@@ -265,13 +296,42 @@
   .spl-go {
     font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
     padding:13px 28px; border:1.5px solid var(--accent); border-radius:999px; background:var(--accent); color:#fff;
-    cursor:pointer; opacity:0; transform:translateY(9px); box-shadow:0 8px 22px -10px rgba(31,116,196,0.7);
-    animation:spl-go-in 340ms var(--spl-ease) 2030ms forwards;
+    cursor:pointer; box-shadow:0 8px 22px -10px rgba(31,116,196,0.7);
     transition:background 160ms var(--ease), transform 120ms var(--ease), box-shadow 160ms var(--ease);
   }
   .spl-go:hover { background:var(--accent-2); border-color:var(--accent-2); box-shadow:0 11px 26px -8px rgba(31,116,196,0.8); }
   .spl-go:active { transform:translateY(1px); }
   .spl-go:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+
+  /* ── Split hero: animated shield (right) + content column (left) ── */
+  .spl-content { display:flex; flex-direction:column; align-items:center; text-align:center; gap:15px; max-width:min(440px,88vw); }
+  .spl-eyebrow { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-mute); }
+  .spl-headline { margin:0; font-family:'Newsreader',serif; font-weight:600; font-size:2.5rem; letter-spacing:-0.02em; line-height:1; color:var(--ink); }
+  .spl-tagline { margin:0; font-family:'Newsreader',serif; font-size:1.06rem; line-height:1.4; color:var(--ink-mid); }
+  .spl-stats { display:none; align-self:stretch; align-items:stretch; border:1px solid var(--rule); border-radius:14px; overflow:hidden; background:rgba(255,255,255,0.55); margin-top:4px; }
+  .spl-cell { flex:1; padding:15px 12px 16px; border-left:1px solid var(--rule); display:flex; flex-direction:column; align-items:center; justify-content:flex-start; text-align:center; gap:9px; min-width:0; }
+  .spl-cell:first-child { border-left:none; }
+  .cell-num { font-family:'Newsreader',serif; font-weight:500; font-size:1.85rem; line-height:1; letter-spacing:-0.02em; color:var(--ink); font-feature-settings:"lnum" 1,"tnum" 1; }
+  .cell-num.cell-tyrx { color:var(--tyrx); }
+  .cell-num.cell-accent { color:var(--accent); }
+  .cell-lab { font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mute); line-height:1.4; }
+  .spl-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+  .spl-about {
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    padding:13px 24px; border:1.5px solid var(--rule); border-radius:999px; background:transparent; color:var(--ink-mid);
+    cursor:pointer;
+    transition:border-color 160ms var(--ease), color 160ms var(--ease), background 160ms var(--ease);
+  }
+  .spl-about:hover { border-color:var(--ink); color:var(--ink); background:rgba(14,34,51,0.03); }
+  .spl-about:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  @media (min-width:1120px){
+    .br-narrow { display:none; }            /* the line break after "decide" is narrow-only */
+    .spl-stage { flex-direction:row-reverse; align-items:center; gap:56px; }
+    .spl-content { align-items:flex-start; text-align:left; }
+    .spl-headline { font-size:3.3rem; }
+    .spl-stats { display:flex; }
+    .spl-actions { justify-content:flex-start; }
+  }
 
   .spl-word { display:flex; flex-direction:column; align-items:center; gap:8px; opacity:0; transform:translateY(8px); animation:spl-rise 220ms var(--spl-ease) 800ms forwards; }
   .spl-title { font-family:'Newsreader',Georgia,serif; font-weight:600; font-size:1.6rem; letter-spacing:-0.01em; color:var(--ink); line-height:1; white-space:nowrap; }
@@ -310,6 +370,7 @@
     .spl-germs .germ { animation:none !important; opacity:0 !important; }
     .spl-word { animation:none !important; opacity:1 !important; transform:none !important; }
     .spl-go { animation:none !important; opacity:1 !important; transform:none !important; }
+    .spl-eyebrow, .spl-headline, .spl-tagline, .spl-stats, .spl-about { animation:none !important; opacity:1 !important; transform:none !important; }
   }
 
   @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:0.001ms !important; transition-duration:0.001ms !important; } }
@@ -383,18 +444,10 @@
         <path class="edge" pathLength="100" d="M80 112 Q124 100 168 112" fill="none" stroke="var(--ink-mute)" stroke-width="1.7" stroke-linecap="round" opacity="0.72"></path>
       </svg>
 
-      <!-- antimicrobial force field (the TYRX envelope's protective barrier) -->
+      <!-- antimicrobial force field (the TYRX envelope's protective barrier) — dotted rings only, no fill -->
       <svg class="spl-layer spl-field" viewBox="0 0 240 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="spl-fieldglow">
-            <stop offset="0%" stop-color="rgba(31,116,196,0.18)"></stop>
-            <stop offset="60%" stop-color="rgba(31,116,196,0.06)"></stop>
-            <stop offset="100%" stop-color="rgba(31,116,196,0)"></stop>
-          </radialGradient>
-        </defs>
-        <circle class="field-glow" cx="121" cy="78" r="64" fill="url(#spl-fieldglow)"></circle>
-        <circle class="field-ripple" cx="121" cy="78" r="56" fill="none" stroke="var(--accent)" stroke-width="2"></circle>
-        <circle class="field-ring" cx="121" cy="78" r="58" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"></circle>
+        <circle class="field-ripple" cx="121" cy="78" r="56" fill="none" stroke="var(--field)" stroke-width="2"></circle>
+        <circle class="field-ring" cx="121" cy="78" r="58" fill="none" stroke="var(--field)" stroke-width="2.2" stroke-linecap="round"></circle>
       </svg>
 
       <!-- germs rushing in, repelled at the boundary -->
@@ -408,11 +461,20 @@
 
     </div>
 
-    <div class="spl-word">
-      <span class="spl-title">BLISTER Score</span>
-      <span class="spl-sub">West Suffolk Cardiology</span>
+    <div class="spl-content">
+      <div class="spl-eyebrow">West Suffolk Cardiology · Decision support</div>
+      <h1 class="spl-headline">BLISTER Score</h1>
+      <p class="spl-tagline">Predict CIED infection risk and decide <br class="br-narrow">when to fit a TYRX antimicrobial envelope.</p>
+      <div class="spl-stats">
+        <div class="spl-cell"><span class="cell-num cell-tyrx">&#8805;6</span><span class="cell-lab">Fit a TYRX envelope</span></div>
+        <div class="spl-cell"><span class="cell-num cell-accent">&#8776;30%</span><span class="cell-lab">Fewer infections</span></div>
+        <div class="spl-cell"><span class="cell-num">31</span><span class="cell-lab">NNT to prevent one</span></div>
+      </div>
+      <div class="spl-actions">
+        <button type="button" class="spl-go" id="spl-go">Go to Calculator</button>
+        <button type="button" class="spl-about" id="spl-about">About</button>
+      </div>
     </div>
-    <button type="button" class="spl-go" id="spl-go">Go to Calculator</button>
   </div>
 </div>
 
@@ -424,7 +486,7 @@
     <span class="brand-sub">CIED infection → TYRX envelope · West Suffolk Cardiology</span>
   </div>
   <div class="topbar-actions">
-    <span class="tb-ver">v1.0.0</span>
+    <span class="tb-ver">v1.1.0</span>
     <button class="tb-btn" id="about-btn">About</button>
   </div>
 </header>
@@ -455,19 +517,13 @@
       <div class="rhint" id="threshold-hint" hidden></div>
 
       <div class="ractions">
-        <button class="btn primary" id="copy-note-btn">Copy clerk note ↗</button>
         <button class="btn ghost" id="bl-reset">Reset</button>
       </div>
-
-      <details class="rnote">
-        <summary>Clerk note</summary>
-        <div class="clerk-note-body" id="clerk-note-body"></div>
-      </details>
     </div>
   </aside>
 </main>
 
-<footer class="footstrip">West Suffolk NHS Foundation Trust · Cardiology · BLISTER Score v1.0.0 · Decision support · not patient-facing</footer>
+<footer class="footstrip">West Suffolk NHS Foundation Trust · Cardiology · BLISTER Score v1.1.0 · Decision support · not patient-facing</footer>
 
 
 <!-- ── About modal ── -->
@@ -485,11 +541,18 @@
     <div class="src"><strong>Source.</strong> Maclean E, Mahtani K, Honarbakhsh S, et al. BLISTER Score: A Novel, Externally Validated Tool for Predicting CIED Infections, and Its Cost-Utility Implications for Antimicrobial Envelope Use. Circ Arrhythm Electrophysiol. 2024;17:e012446. DOI: 10.1161/CIRCEP.123.012446.</div>
     <div class="disc"><strong>Disclaimer.</strong> Clinical decision support for West Suffolk Cardiology, reproducing a published, peer-reviewed score for convenience at the point of care. It does not replace clinical judgement or local infection-prevention policy. No patient data is stored or transmitted — everything runs in your browser.</div>
     <div class="cl">
-      <div class="eyebrow">Version · v1.0.0 · June 2026</div>
+      <div class="eyebrow">Version · v1.1.0 · June 2026</div>
+      <ul class="cl-list">
+        <li>New animated launch screen — a pacemaker is wrapped in the TYRX antimicrobial envelope and seated into the device pocket, an antimicrobial force field repels infection, and a “Go to Calculator” reveal lifts the curtain with a muted rainbow flourish down the BLISTER spine.</li>
+        <li>Calculator rebuilt — answer factors sit below each domain and line up on a grid; all are checkboxes, with mutually-exclusive options (age band, device box-change type, previous procedures) handled automatically.</li>
+        <li>Type of procedure now supports combinations — a box change, a new / revised lead and a lead extraction can be scored together.</li>
+        <li>Per-domain score badges on the spine, a floating result panel and sticky footer on small screens, and a clearer ≥6 envelope verdict.</li>
+      </ul>
+      <div class="eyebrow" style="margin-top:16px;">v1.0.0 · June 2026</div>
       <ul class="cl-list">
         <li>Initial release — full BLISTER calculator across all seven domains with live scoring.</li>
         <li>Antimicrobial-envelope verdict at the ≥6 threshold, with projected infection reduction, NNT and cost per QALY.</li>
-        <li>Copyable clerk note; installable as an offline app (PWA) with West Suffolk branding.</li>
+        <li>Installable as an offline app (PWA) with West Suffolk branding.</li>
       </ul>
     </div>
   </div>
@@ -519,34 +582,37 @@
 /* =============================================================
    BLISTER score model
    ============================================================= */
+/* All controls are checkboxes. `mx` marks a mutual-exclusion set within a group:
+   ticking one option auto-unticks its siblings with the same `mx`. Options without
+   `mx` can be combined (e.g. a box change + a new lead + a lead extraction). */
 const GROUPS = [
-  { id:'B', letter:'B', name:'Blood results', mode:'multi', crits:[
+  { id:'B', letter:'B', name:'Blood results', crits:[
     { key:'egfr', pts:2, label:'eGFR < 30 mL/min/1.73m²', sub:'at procedure' },
     { key:'crp',  pts:1, label:'CRP ≥ 50 mg/L', sub:'within 24 h' },
   ]},
-  { id:'L', letter:'L', name:'Long procedure', mode:'multi', crits:[
+  { id:'L', letter:'L', name:'Long procedure', crits:[
     { key:'long', pts:2, label:'Pocket open ≥ 120 min', sub:'top-quartile duration' },
   ]},
-  { id:'I', letter:'I', name:'Immunosuppressed', mode:'multi', crits:[
+  { id:'I', letter:'I', name:'Immunosuppressed', crits:[
     { key:'immuno', pts:2, label:'Immunosuppressed', sub:'steroids / immunosuppressant, or comorbidity (e.g. HIV)' },
   ]},
-  { id:'S', letter:'S', name:'Sixty or younger', mode:'single', crits:[
-    { key:'u60',   pts:2, label:'Under 60 years' },
-    { key:'s6069', pts:1, label:'60 – 69 years' },
+  { id:'S', letter:'S', name:'Sixty or younger', crits:[
+    { key:'u60',   pts:2, label:'Under 60 years', mx:'age' },
+    { key:'s6069', pts:1, label:'60 – 69 years',  mx:'age' },
   ]},
-  { id:'T', letter:'T', name:'Type of procedure', mode:'single', crits:[
-    { key:'ppm',  pts:0, label:'PPM implant / box change' },
-    { key:'icd',  pts:1, label:'ICD implant / box change' },
-    { key:'crt',  pts:4, label:'CRT implant / box change' },
-    { key:'lead', pts:4, label:'New / revised lead', sub:'without extraction' },
+  { id:'T', letter:'T', name:'Type of procedure', crits:[
+    { key:'ppm',  pts:0, label:'PPM implant / box change', mx:'dev' },
+    { key:'icd',  pts:1, label:'ICD implant / box change', mx:'dev' },
+    { key:'crt',  pts:4, label:'CRT implant / box change', mx:'dev' },
+    { key:'lead', pts:4, label:'New / revised lead' },
     { key:'ext',  pts:6, label:'Lead extraction' },
   ]},
-  { id:'E', letter:'E', name:'Early reintervention', mode:'multi', crits:[
+  { id:'E', letter:'E', name:'Early reintervention', crits:[
     { key:'early', pts:7, label:'Same pocket within 2 years' },
   ]},
-  { id:'R', letter:'R', name:'Repeat procedure', mode:'single', crits:[
-    { key:'r1', pts:2, label:'1 previous procedure' },
-    { key:'r2', pts:4, label:'2+ previous procedures' },
+  { id:'R', letter:'R', name:'Repeat procedure', crits:[
+    { key:'r1', pts:2, label:'1 previous procedure',   mx:'rep' },
+    { key:'r2', pts:4, label:'2+ previous procedures',  mx:'rep' },
   ]},
 ];
 
@@ -572,18 +638,16 @@ GROUPS.forEach(g => {
   const row = document.createElement('div');
   row.className = 'brow';
   row.dataset.row = g.id;
-  const mk = g.mode === 'single' ? 'radio' : 'check';
   const chips = g.crits.map(c => `
     <button type="button" class="bchip" data-key="${c.key}" data-group="${g.id}" aria-pressed="false"${c.sub ? ` title="${c.sub}"` : ''}>
-      <span class="mk ${mk}"></span>
+      <span class="mk check"></span>
       <span class="clab"><span>${c.label}</span>${c.sub ? `<span class="csub">${c.sub}</span>` : ''}</span>
       <span class="cp">${c.pts > 0 ? '+' + c.pts : '0'}</span>
     </button>`).join('');
   row.innerHTML = `
-    <div class="bletter">${g.letter}</div>
+    <div class="bletter">${g.letter}<span class="bbadge" data-badge="${g.id}"></span></div>
     <div class="bnamecol">
       <span class="bname-row"><span class="bicon">${ICONS[g.id] || ''}</span><span class="bname">${g.name}</span></span>
-      <span class="bmeta">${g.mode === 'single' ? 'choose one · ' : ''}<span class="bcontrib" data-contrib="${g.id}">—</span></span>
     </div>
     <div class="bchips">${chips}</div>`;
   groupsEl.appendChild(row);
@@ -595,12 +659,13 @@ groupsEl.addEventListener('click', (e) => {
   if (!btn) return;
   const key = btn.dataset.key;
   const g = GROUPS.find(gr => gr.id === btn.dataset.group);
-  if (g.mode === 'single') {
-    const wasOn = selected.has(key);
-    g.crits.forEach(c => selected.delete(c.key));
-    if (!wasOn) selected.add(key);
+  const crit = g.crits.find(c => c.key === key);
+  if (selected.has(key)) {
+    selected.delete(key);
   } else {
-    selected.has(key) ? selected.delete(key) : selected.add(key);
+    selected.add(key);
+    // mutual exclusion: untick siblings sharing the same mx set
+    if (crit.mx) g.crits.forEach(c => { if (c.key !== key && c.mx === crit.mx) selected.delete(c.key); });
   }
   groupsEl.querySelectorAll(`.bchip[data-group="${g.id}"]`).forEach(b => {
     b.setAttribute('aria-pressed', selected.has(b.dataset.key) ? 'true' : 'false');
@@ -621,12 +686,13 @@ function render() {
   }
   GROUPS.forEach(g => {
     const pts = groupPoints(g);
-    const hasSel = g.crits.some(c => selected.has(c.key));
-    groupsEl.querySelector(`[data-contrib="${g.id}"]`).textContent = hasSel ? (pts > 0 ? '+' + pts : '0') : '—';
+    const badge = groupsEl.querySelector(`[data-badge="${g.id}"]`);
+    badge.textContent = pts > 0 ? pts : '';
+    badge.classList.toggle('show', pts > 0);
     groupsEl.querySelector(`[data-row="${g.id}"]`).classList.toggle('on', pts > 0);
   });
   renderVerdict(score);
-  renderClerkNote(score);
+  fitResultBar();
 }
 
 /* ---- Verdict ---- */
@@ -653,7 +719,7 @@ function renderVerdict(score) {
   prevW = w;
   if (w) {
     vTitle.textContent = 'Fit a TYRX envelope';
-    vBody.innerHTML = `Score <strong>${score}</strong> — at or above the ≥6 threshold. An envelope is cost-effective at this risk level.`;
+    vBody.innerHTML = `Score <strong>${score}</strong> — at or above the ≥6 threshold; an envelope is cost-effective at this risk level.`;
     vStats.hidden = false; hint.hidden = true;
   } else {
     vStats.hidden = true;
@@ -663,7 +729,7 @@ function renderVerdict(score) {
       hint.hidden = true;
     } else {
       vTitle.textContent = 'No envelope by score';
-      vBody.innerHTML = `Score <strong>${score}</strong> — below the ≥6 threshold. Standard peri-procedural antibiotics.`;
+      vBody.innerHTML = `Score <strong>${score}</strong> — below the ≥6 threshold; standard peri-procedural antibiotics.`;
       const gap = THRESHOLD - score;
       hint.hidden = false;
       hint.innerHTML = `<strong>${gap}</strong> more point${gap === 1 ? '' : 's'} to reach the envelope threshold.`;
@@ -671,42 +737,33 @@ function renderVerdict(score) {
   }
 }
 
-/* ---- Clerk note ---- */
-const noteEl = document.getElementById('clerk-note-body');
-function contributors() {
-  const parts = [];
-  GROUPS.forEach(g => g.crits.forEach(c => { if (selected.has(c.key) && c.pts > 0) parts.push(`${c.label.toLowerCase()} (+${c.pts})`); }));
-  return parts;
-}
-function renderClerkNote(score) {
-  const parts = contributors();
-  let html = `<p>CIED infection risk by the <strong>BLISTER score</strong> (Maclean et al, 2024): <strong>${score}</strong>${parts.length ? `, from ${parts.join(', ')}` : ' (no risk factors selected)'}.</p>`;
-  if (score >= THRESHOLD) {
-    html += `<p>≥6 — a <mark class="ink">TYRX antimicrobial envelope</mark> is cost-effective (≈30% relative reduction in infection; NNT 31; £18,446/QALY, within NICE). <mark class="ink">Plan: fit an envelope</mark> with standard peri-procedural antibiotics.</p>`;
+/* ---- Reset + responsive result bar ---- */
+function fitResultBar() {
+  const app = document.querySelector('main.app');
+  const result = document.querySelector('.result');
+  const footer = document.querySelector('.footstrip');
+  if (!app || !result) return;
+  if (window.matchMedia('(max-width:980px)').matches) {
+    const fh = footer ? footer.offsetHeight : 0;
+    result.style.bottom = fh + 'px';   // float the bar just above the fixed footer
+    requestAnimationFrame(() => { app.style.paddingBottom = (result.offsetHeight + fh + 18) + 'px'; });
   } else {
-    html += `<p>Below the ≥6 threshold. <mark class="ink">Plan: no envelope</mark> on score grounds — standard peri-procedural antibiotic prophylaxis. Re-score if the planned procedure changes.</p>`;
+    result.style.bottom = '';
+    app.style.paddingBottom = '';
   }
-  noteEl.innerHTML = html;
 }
-function noteAsText(score) {
-  const parts = contributors();
-  let t = `CIED infection risk by the BLISTER score (Maclean et al, 2024): ${score}${parts.length ? ', from ' + parts.join(', ') : ' (no risk factors selected)'}.\n\n`;
-  t += score >= THRESHOLD
-    ? `>=6 — a TYRX antimicrobial envelope is cost-effective (~30% relative reduction in infection; NNT 31; £18,446/QALY, within NICE). Plan: fit an envelope with standard peri-procedural antibiotics.`
-    : `Below the >=6 threshold. Plan: no envelope on score grounds — standard peri-procedural antibiotic prophylaxis. Re-score if the planned procedure changes.`;
-  t += `\n\nReference: Maclean E et al. Circ Arrhythm Electrophysiol. 2024;17:e012446.`;
-  return t;
+window.addEventListener('resize', fitResultBar);
+/* Muted rainbow cascade down the BLISTER spine, run once when the calculator is revealed. */
+function spineFlourish() {
+  ['B','L','I','S','T','E','R'].forEach((id, i) => {
+    const el = document.querySelector(`[data-row="${id}"] .bletter`);
+    if (!el) return;
+    setTimeout(() => {
+      el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 820);
+    }, i * 120);
+  });
 }
-
-/* ---- Copy + reset ---- */
-document.getElementById('copy-note-btn').addEventListener('click', (e) => {
-  const btn = e.currentTarget;
-  navigator.clipboard.writeText(noteAsText(totalScore())).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = 'Copied ✓'; btn.style.background = 'var(--ok)'; btn.style.borderColor = 'var(--ok)';
-    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.borderColor = ''; }, 1700);
-  }).catch(() => alert('Copy failed — expand the clerk note and copy manually.'));
-});
 document.getElementById('bl-reset').addEventListener('click', () => {
   selected.clear();
   groupsEl.querySelectorAll('.bchip').forEach(b => b.setAttribute('aria-pressed', 'false'));
@@ -740,9 +797,12 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !aboutMo
     splash.classList.add('done');                 // lifts up to reveal the calculator
     if (goBtn) goBtn.removeEventListener('click', done);
     setTimeout(() => { if (splash) { splash.remove(); splash = null; } }, 620);
+    setTimeout(spineFlourish, 480);               // muted rainbow cascade down the spine on reveal
   };
   if (goBtn) goBtn.addEventListener('click', done);
   else splash.addEventListener('click', done);      // fallback: tap anywhere if the button is missing
+  const aboutBtn = document.getElementById('spl-about');
+  if (aboutBtn) aboutBtn.addEventListener('click', () => { done(); setTimeout(openAbout, 660); }); // lift, then open the About modal
 })();
 
 /* =============================================================
