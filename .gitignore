@@ -3,9 +3,9 @@
 Thumbs.db
 desktop.ini
 
-# Throwaway preview / screenshot artifacts
-_preview.html
-_shot_*.png
+# Throwaway preview / screenshot / scratch artifacts (underscore-prefixed)
+_*.html
+_*.png
 
 # Python
 __pycache__/
