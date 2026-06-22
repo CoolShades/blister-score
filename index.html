@@ -76,7 +76,7 @@
 
   /* ── App layout ── */
   .app { display:grid; grid-template-columns: 1fr 340px; gap:20px; align-items:start; max-width:1380px; width:100%; margin:0 auto; padding:16px 18px 22px; flex:1 0 auto; }
-  @media (max-width: 980px) { .app { grid-template-columns: 1fr; gap:14px; } }
+  @media (max-width: 980px) { .app { display:flex; flex-direction:column; gap:0; min-height:0; flex:1 1 auto; overflow:hidden; padding:0 14px; } }
 
   .domains { min-width:0; }
   /* BLISTER acronym spine — letters run down the left, lighting up as the score builds. */
@@ -132,19 +132,20 @@
 
   /* ── Result panel ── */
   .result { position: sticky; top: calc(var(--topbar) + 14px); }
-  /* Narrow: the result/verdict floats as a card pinned to the bottom of the screen. */
+  /* Narrow: app-shell — the domains scroll between a static top bar and a docked
+     result panel + footer at the bottom; the page itself does not scroll. */
   @media (max-width: 980px) {
-    .result { position:fixed; left:0; right:0; bottom:0; top:auto; z-index:50; order:0; padding:0 12px 8px; pointer-events:none; }
-    .footstrip { position:fixed; left:0; right:0; bottom:0; z-index:48; background:var(--paper); border-top:1px solid var(--rule); padding:9px 18px calc(9px + env(safe-area-inset-bottom)); }
-    .result .rcard { pointer-events:auto; display:flex; align-items:center; gap:14px; padding:10px 14px; border-radius:16px; box-shadow:0 16px 44px -10px rgba(14,34,51,0.5); }
-    .result .rcard::before { left:0; right:0; top:0; border-radius:16px 16px 0 0; }
-    .result .rtop { flex:1; min-width:0; gap:12px; }
-    .result .rnum { font-size:2.4rem; line-height:0.85; }
-    .result .reyebrow { display:none; }
-    .result .rtitle { font-size:1.16rem; }
-    .result .vbadge { display:none; }
-    .result .rbody, .result .rstats, .result .rhint { display:none; }
-    .result .ractions { margin-top:0; flex-shrink:0; }
+    body { height:100vh; height:100dvh; min-height:0; overflow:hidden; }
+    .topbar { flex-shrink:0; }
+    .domains { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:12px 0 14px; }
+    .result { position:static; flex-shrink:0; padding:0 0 12px; }
+    .result .rcard { padding:14px 16px 14px; box-shadow:0 -12px 28px -18px rgba(14,34,51,0.45); }
+    .result .rnum { font-size:3rem; }
+    .result .rtitle { font-size:1.3rem; }
+    .result .rbody { display:none; }
+    .result .ractions { margin-top:14px; }
+    .result .ractions .btn { flex:1; }
+    .footstrip { border-top:1px solid var(--rule); padding:9px 18px calc(10px + env(safe-area-inset-bottom)); }
   }
   .rcard { border:1.5px solid var(--ink); background:var(--paper); position:relative; padding:18px 20px 16px; }
   .rcard::before { content:""; position:absolute; top:-1.5px; left:-1.5px; right:-1.5px; height:5px; background:var(--ink-mute); transition:background-color 320ms ease; }
@@ -161,7 +162,7 @@
   .score-pop { animation: pop 320ms cubic-bezier(0.2,0.7,0.2,1); }
   @keyframes pop { 0% { opacity:0.3; transform:translateY(5px);} 100% { opacity:1; transform:translateY(0);} }
 
-  .rstats { display:grid; grid-template-columns: repeat(3,1fr); gap:0; margin-top:14px; border-top:1px solid var(--rule); }
+  .rstats { display:grid; grid-template-columns: repeat(2,1fr); gap:0; margin-top:14px; border-top:1px solid var(--rule); }
   .rstat { padding:11px 8px 3px; border-right:1px solid var(--rule); text-align:center; }
   .rstat:last-child { border-right:none; }
   .rstat-num { font-family:'Newsreader',serif; font-weight:500; font-size:1.5rem; color:var(--accent); line-height:1; letter-spacing:-0.02em; }
@@ -175,6 +176,7 @@
   .btn:hover { background:var(--ink); color:var(--paper); }
   .btn.primary { flex:1; background:var(--accent); border-color:var(--accent); color:#fff; }
   .btn.primary:hover { background:var(--accent-2); }
+  .btn.primary.copied, .btn.primary.copied:hover { background:var(--ok); border-color:var(--ok); color:#fff; }
   .btn.ghost { border-color:var(--rule); color:var(--ink-mute); }
   .btn.ghost:hover { background:transparent; border-color:var(--ink); color:var(--ink); }
 
@@ -236,7 +238,6 @@
   .brow.on .bicon { color:var(--accent); opacity:1; }
 
   /* ── Verdict: three states (empty · below · warranted-filled) ── */
-  .vbadge { display:inline-block; margin-top:7px; font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.16em; text-transform:uppercase; color:#fff; background:var(--accent); padding:4px 10px; border-radius:999px; }
   .rcard.warranted { background:linear-gradient(180deg,#E7F1FB 0%, var(--paper) 58%); box-shadow:0 16px 44px -22px rgba(31,116,196,0.55); }
   .rcard.warranted .rtop { background:linear-gradient(180deg, rgba(31,116,196,0.10), rgba(31,116,196,0)); margin:-4px -6px 0; padding:8px 6px 4px; border-radius:10px; }
   .rcard.verdict-beat { animation: vbeat 640ms var(--ease); }
@@ -486,7 +487,7 @@
     <span class="brand-sub">CIED infection → TYRX envelope · West Suffolk Cardiology</span>
   </div>
   <div class="topbar-actions">
-    <span class="tb-ver">v1.1.0</span>
+    <span class="tb-ver">v1.2.0</span>
     <button class="tb-btn" id="about-btn">About</button>
   </div>
 </header>
@@ -504,26 +505,25 @@
         <div class="rhead">
           <div class="reyebrow" id="verdict-eyebrow">Antimicrobial envelope</div>
           <div class="rtitle" id="verdict-title">Build the score</div>
-          <span class="vbadge" id="verdict-badge" hidden>Envelope warranted</span>
         </div>
       </div>
       <div class="rbody" id="verdict-body">Tap the factors that apply — the score and verdict update live.</div>
 
       <div class="rstats" id="verdict-stats" hidden>
-        <div class="rstat"><div class="rstat-num">≈30%</div><div class="rstat-lab">Fewer CIED infections (modelled)</div></div>
-        <div class="rstat"><div class="rstat-num">31</div><div class="rstat-lab">NNT to prevent one</div></div>
-        <div class="rstat"><div class="rstat-num">£18k</div><div class="rstat-lab">/ QALY · within NICE</div></div>
+        <div class="rstat"><div class="rstat-num">≈30%</div><div class="rstat-lab">Fewer CIED infections</div></div>
+        <div class="rstat"><div class="rstat-num">31</div><div class="rstat-lab">NNT to prevent one CIED</div></div>
       </div>
       <div class="rhint" id="threshold-hint" hidden></div>
 
       <div class="ractions">
+        <button class="btn primary" id="bl-copy">Copy note</button>
         <button class="btn ghost" id="bl-reset">Reset</button>
       </div>
     </div>
   </aside>
 </main>
 
-<footer class="footstrip">West Suffolk NHS Foundation Trust · Cardiology · BLISTER Score v1.1.0 · Decision support · not patient-facing</footer>
+<footer class="footstrip">West Suffolk NHS Foundation Trust · Cardiology · BLISTER Score v1.2.0 · Decision support · not patient-facing</footer>
 
 
 <!-- ── About modal ── -->
@@ -541,12 +541,18 @@
     <div class="src"><strong>Source.</strong> Maclean E, Mahtani K, Honarbakhsh S, et al. BLISTER Score: A Novel, Externally Validated Tool for Predicting CIED Infections, and Its Cost-Utility Implications for Antimicrobial Envelope Use. Circ Arrhythm Electrophysiol. 2024;17:e012446. DOI: 10.1161/CIRCEP.123.012446.</div>
     <div class="disc"><strong>Disclaimer.</strong> Clinical decision support for West Suffolk Cardiology, reproducing a published, peer-reviewed score for convenience at the point of care. It does not replace clinical judgement or local infection-prevention policy. No patient data is stored or transmitted — everything runs in your browser.</div>
     <div class="cl">
-      <div class="eyebrow">Version · v1.1.0 · June 2026</div>
+      <div class="eyebrow">Version · v1.2.0 · June 2026</div>
+      <ul class="cl-list">
+        <li><strong>Copy note</strong> — generate a paste-ready pre-procedure summary (BLISTER score, factor breakdown and the envelope recommendation) for the SOLUS record. Below the threshold it flags when a prolonged pocket-open time (≥120 min) would tip the score to ≥6.</li>
+        <li>Small-screen layout rebuilt as an app-shell — the domains scroll between a fixed header and a static result panel docked above the footer (no more floating bar).</li>
+        <li>The rainbow spine flourish now replays as a gentle attract loop while the form is untouched, and stops as soon as a factor is selected.</li>
+        <li>Tidier verdict — a real 0-point selection (e.g. a PPM box change) now reads “No envelope by score”, the warranted box shows two key figures, and the eyebrow reads “Envelope warranted”.</li>
+      </ul>
+      <div class="eyebrow" style="margin-top:16px;">v1.1.0 · June 2026</div>
       <ul class="cl-list">
         <li>New animated launch screen — a pacemaker is wrapped in the TYRX antimicrobial envelope and seated into the device pocket, an antimicrobial force field repels infection, and a “Go to Calculator” reveal lifts the curtain with a muted rainbow flourish down the BLISTER spine.</li>
         <li>Calculator rebuilt — answer factors sit below each domain and line up on a grid; all are checkboxes, with mutually-exclusive options (age band, device box-change type, previous procedures) handled automatically.</li>
         <li>Type of procedure now supports combinations — a box change, a new / revised lead and a lead extraction can be scored together.</li>
-        <li>Per-domain score badges on the spine, a floating result panel and sticky footer on small screens, and a clearer ≥6 envelope verdict.</li>
       </ul>
       <div class="eyebrow" style="margin-top:16px;">v1.0.0 · June 2026</div>
       <ul class="cl-list">
@@ -693,6 +699,7 @@ function render() {
   });
   renderVerdict(score);
   fitResultBar();
+  updateSpineLoop();   // attract-loop runs only while the form is empty
 }
 
 /* ---- Verdict ---- */
@@ -702,16 +709,15 @@ const vTitle = document.getElementById('verdict-title');
 const vBody = document.getElementById('verdict-body');
 const vStats = document.getElementById('verdict-stats');
 const hint = document.getElementById('threshold-hint');
-const vBadge = document.getElementById('verdict-badge');
 let prevW = false;
 
 function renderVerdict(score) {
   const w = score >= THRESHOLD;
+  const empty = selected.size === 0;   // untouched — distinct from a real 0-point selection (e.g. PPM box change)
   verdictEl.classList.toggle('warranted', w);
-  verdictEl.classList.toggle('state-below', !w && score > 0);
-  verdictEl.classList.toggle('state-empty', score === 0);
-  vEyebrow.textContent = w ? 'Antimicrobial envelope · warranted' : 'Antimicrobial envelope';
-  if (vBadge) vBadge.hidden = !w;
+  verdictEl.classList.toggle('state-below', !w && !empty);
+  verdictEl.classList.toggle('state-empty', empty);
+  vEyebrow.textContent = w ? 'Envelope warranted' : 'Antimicrobial envelope';
   /* One-shot 'beat' when the score first crosses the threshold. */
   if (w && !prevW) {
     verdictEl.classList.remove('verdict-beat'); void verdictEl.offsetWidth; verdictEl.classList.add('verdict-beat');
@@ -723,7 +729,7 @@ function renderVerdict(score) {
     vStats.hidden = false; hint.hidden = true;
   } else {
     vStats.hidden = true;
-    if (score === 0) {
+    if (empty) {
       vTitle.textContent = 'Build the score';
       vBody.innerHTML = 'Tap the factors that apply — the score and verdict update live.';
       hint.hidden = true;
@@ -739,18 +745,12 @@ function renderVerdict(score) {
 
 /* ---- Reset + responsive result bar ---- */
 function fitResultBar() {
+  // Layout is pure CSS now (static docked panel on narrow, sticky sidebar on
+  // desktop); just clear any inline styles left by older positioning logic.
   const app = document.querySelector('main.app');
   const result = document.querySelector('.result');
-  const footer = document.querySelector('.footstrip');
-  if (!app || !result) return;
-  if (window.matchMedia('(max-width:980px)').matches) {
-    const fh = footer ? footer.offsetHeight : 0;
-    result.style.bottom = fh + 'px';   // float the bar just above the fixed footer
-    requestAnimationFrame(() => { app.style.paddingBottom = (result.offsetHeight + fh + 18) + 'px'; });
-  } else {
-    result.style.bottom = '';
-    app.style.paddingBottom = '';
-  }
+  if (result) result.style.bottom = '';
+  if (app) app.style.paddingBottom = '';
 }
 window.addEventListener('resize', fitResultBar);
 /* Muted rainbow cascade down the BLISTER spine, run once when the calculator is revealed. */
@@ -764,11 +764,89 @@ function spineFlourish() {
     }, i * 120);
   });
 }
+
+/* While the calculator sits untouched, the cascade loops as a gentle attract
+   beat (a 1s pause before each run). It stops the moment anything is selected
+   and resumes once the form is cleared again. Suppressed under reduced motion. */
+const SPINE_CASCADE_MS = 1540;   // full B→R cascade (6×120ms stagger + 820ms tail)
+const spineReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let spineLoopOn = false, spineTimer = null, calcRevealed = false;
+
+function spineLoopStep() {
+  if (!spineLoopOn) return;
+  spineFlourish();
+  spineTimer = setTimeout(spineLoopStep, SPINE_CASCADE_MS + 1000);
+}
+function startSpineLoop() {
+  if (spineLoopOn || spineReduceMotion) return;
+  spineLoopOn = true;
+  spineTimer = setTimeout(spineLoopStep, 1000);   // 1s delay before the first run
+}
+function stopSpineLoop() {
+  spineLoopOn = false;
+  if (spineTimer) { clearTimeout(spineTimer); spineTimer = null; }
+}
+/* Run the loop only once the calculator is revealed and nothing is selected. */
+function updateSpineLoop() {
+  if (calcRevealed && selected.size === 0) startSpineLoop();
+  else stopSpineLoop();
+}
 document.getElementById('bl-reset').addEventListener('click', () => {
   selected.clear();
   groupsEl.querySelectorAll('.bchip').forEach(b => b.setAttribute('aria-pressed', 'false'));
   render();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const domains = document.querySelector('.domains');
+  if (domains) domains.scrollTo({ top: 0, behavior: 'smooth' });  // narrow: domains is the scroll region
+  window.scrollTo({ top: 0, behavior: 'smooth' });                // desktop: the page scrolls
+});
+
+/* ---- Copy a SOLUS-ready pre-procedure note ---- */
+function buildClinicalNote() {
+  const score = totalScore();
+  const warranted = score >= THRESHOLD;
+  const factors = [];
+  GROUPS.forEach(g => g.crits.forEach(c => {
+    if (selected.has(c.key)) factors.push(`- ${c.label} (${c.pts > 0 ? '+' : ''}${c.pts})`);
+  }));
+  const breakdown = factors.length ? factors.join('\n') : '- No risk factors recorded.';
+
+  const out = [
+    `Pre-procedure, the patient's BLISTER score is ${score}.`,
+    `Breakdown:\n${breakdown}`,
+  ];
+  if (warranted) {
+    out.push(`As this meets the NICE-recommended cut-off of 6, a TYRX antimicrobial envelope is cost-effective at this risk level (≈30% relative reduction in CIED infection; NNT 31; £18,446 per QALY). Recommend a TYRX antimicrobial envelope is used during the proposed procedure.`);
+  } else {
+    out.push(`As this is below the NICE-recommended cut-off of 6, a TYRX antimicrobial envelope is not cost-effective at this risk level; standard peri-procedural antibiotic prophylaxis is appropriate.`);
+    const longPts = ALL['long'].pts;   // a prolonged pocket-open time (the L domain) adds +2
+    if (!selected.has('long') && score + longPts >= THRESHOLD) {
+      out.push(`Note: if the pocket-open time is ≥ 120 min (prolonged procedure), this adds +${longPts}, bringing the score to ${score + longPts} (≥6) — in that case a TYRX antimicrobial envelope should be used during the proposed procedure.`);
+    }
+  }
+  return out.join('\n\n');
+}
+
+const copyBtn = document.getElementById('bl-copy');
+const COPY_LABEL = 'Copy note';
+let copyResetTimer = null;
+copyBtn.addEventListener('click', async () => {
+  const note = buildClinicalNote();
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(note);
+    ok = true;
+  } catch (e) {
+    const ta = document.createElement('textarea');   // fallback for non-secure contexts (e.g. file://)
+    ta.value = note; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+    document.body.removeChild(ta);
+  }
+  copyBtn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+  copyBtn.classList.toggle('copied', ok);
+  clearTimeout(copyResetTimer);
+  copyResetTimer = setTimeout(() => { copyBtn.textContent = COPY_LABEL; copyBtn.classList.remove('copied'); }, 1800);
 });
 
 render();
@@ -797,7 +875,8 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !aboutMo
     splash.classList.add('done');                 // lifts up to reveal the calculator
     if (goBtn) goBtn.removeEventListener('click', done);
     setTimeout(() => { if (splash) { splash.remove(); splash = null; } }, 620);
-    setTimeout(spineFlourish, 480);               // muted rainbow cascade down the spine on reveal
+    calcRevealed = true;
+    updateSpineLoop();                            // start the looping rainbow cascade (stops on first selection)
   };
   if (goBtn) goBtn.addEventListener('click', done);
   else splash.addEventListener('click', done);      // fallback: tap anywhere if the button is missing
