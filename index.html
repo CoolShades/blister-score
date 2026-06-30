@@ -83,6 +83,8 @@
   .domains { min-width:0; }
   /* BLISTER acronym spine — letters run down the left, lighting up as the score builds. */
   .blist { border:1px solid var(--rule); background:var(--paper); padding:0 22px; }
+  .blist-note { margin:0; padding:14px 0 13px; border-bottom:1px solid var(--rule); font-family:'Newsreader',serif; font-size:13.5px; line-height:1.5; color:var(--ink-mid); }
+  .blist-note strong { color:var(--ink); font-weight:600; }
   .brow { display:grid; grid-template-columns:30px minmax(0,1fr); column-gap:18px; row-gap:11px; align-items:start; padding:15px 0; border-bottom:1px solid var(--rule); }
   .brow:last-child { border-bottom:none; }
   .bletter { grid-column:1; grid-row:1 / span 2; align-self:start; position:relative; text-align:center; font-family:'Newsreader',serif; font-style:italic; font-weight:300; font-size:2.2rem; line-height:0.9; color:var(--ink-mute); opacity:0.5; transition:color 240ms ease, opacity 240ms ease; }
@@ -139,14 +141,22 @@
   @media (max-width: 980px) {
     body { height:100vh; height:100dvh; min-height:0; overflow:hidden; }
     .topbar { flex-shrink:0; }
-    .domains { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:12px 0 14px; }
-    .result { position:static; flex-shrink:0; padding:0 0 12px; }
-    .result .rcard { padding:14px 16px 14px; box-shadow:0 -12px 28px -18px rgba(14,34,51,0.45); }
+    /* The scrolling list is its own bordered box — the border sits on the fixed scroll viewport, so its bottom edge stays crisp at every scroll position. A gap above (topbar) and below (result) makes two clearly bounded sections. */
+    .domains { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:12px 0 14px;
+               margin-top:10px; border:1px solid var(--rule); background:var(--paper); }
+    .blist { border:none; }
+    .result { position:static; flex-shrink:0; padding:0 0 12px; margin-top:10px; }   /* always a gap above the docked panel */
+    /* Two-column docked card: score + verdict (+ hint/stats) left, Copy/Reset stacked right. */
+    .result .rcard { padding:14px 16px 14px; box-shadow:0 -12px 28px -18px rgba(14,34,51,0.45);
+                     display:grid; grid-template-columns:1fr auto; grid-template-areas:"top actions" "extra actions"; column-gap:14px; align-items:start; }
+    .result .rcard.warranted { box-shadow:0 -12px 28px -18px rgba(14,34,51,0.45), 0 16px 44px -22px rgba(31,116,196,0.55); }  /* keep the lift in the warranted state */
+    .result .rtop { grid-area:top; }
+    .result .rstats, .result .rhint { grid-area:extra; }
     .result .rnum { font-size:3rem; }
     .result .rtitle { font-size:1.3rem; }
     .result .rbody { display:none; }
-    .result .ractions { margin-top:14px; }
-    .result .ractions .btn { flex:1; }
+    .result .ractions { grid-area:actions; margin-top:0; flex-direction:column; align-self:start; }
+    .result .ractions .btn { flex:0 0 auto; width:100%; }   /* equal width = the wider button (Copy note) */
     .footstrip { border-top:1px solid var(--rule); padding:9px 18px calc(10px + env(safe-area-inset-bottom)); }
   }
   .rcard { border:1.5px solid var(--ink); background:var(--paper); position:relative; padding:18px 20px 16px; }
@@ -195,23 +205,22 @@
     background:var(--paper-hi); border:1.5px solid var(--ink);
     box-shadow:0 18px 44px -18px rgba(14,34,51,0.55);
     padding:11px 14px 12px;
-    opacity:0; transform:translateY(-4px); pointer-events:none;
-    transition:opacity 150ms ease, transform 150ms ease;
+    opacity:0; pointer-events:none;
+    transition:opacity 150ms ease;
   }
-  .copy-preview.show { opacity:1; transform:translateY(0); }
-  .copy-preview.flip-up { transform:translateY(4px); }
-  .copy-preview.flip-up.show { transform:translateY(0); }
-  .copy-preview-arrow {
-    position:absolute; top:-7px; left:24px; width:12px; height:12px;
-    background:var(--paper-hi); border-left:1.5px solid var(--ink); border-top:1.5px solid var(--ink);
-    transform:rotate(45deg);
-  }
-  .copy-preview.flip-up .copy-preview-arrow {
-    top:auto; bottom:-7px; border-left:none; border-top:none;
-    border-right:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink);
-  }
+  .copy-preview.show { opacity:1; }
+  /* Arrow: a 12px rotated square showing the two borders that face the button; side class picks which edge + direction. */
+  .copy-preview-arrow { position:absolute; width:12px; height:12px; background:var(--paper-hi); transform:rotate(45deg); }
+  .copy-preview.side-down  .copy-preview-arrow { top:-7px;    left:24px; border-left:1.5px solid var(--ink); border-top:1.5px solid var(--ink); }
+  .copy-preview.side-up    .copy-preview-arrow { bottom:-7px; left:24px; border-right:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); }
+  .copy-preview.side-right .copy-preview-arrow { left:-7px;   top:18px;  border-left:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); }
+  .copy-preview.side-left  .copy-preview-arrow { right:-7px;  top:18px;  border-top:1.5px solid var(--ink); border-right:1.5px solid var(--ink); }
   .copy-preview-eyebrow { font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); margin-bottom:7px; }
   .copy-preview-text { font-family:'Newsreader',serif; font-size:13px; line-height:1.5; color:var(--ink-mid); white-space:pre-wrap; word-break:break-word; }
+  /* Domain explainer popover — reuses the copy-preview bubble box + arrow, but click-toggled and interactive. */
+  .info-pop { pointer-events:auto; width:min(300px, calc(100vw - 24px)); }
+  .info-pop-title { font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); margin-bottom:6px; }
+  .info-pop-text { font-family:'Newsreader',serif; font-size:13px; line-height:1.5; color:var(--ink-mid); }
 
   .rnote { margin-top:12px; border-top:1px solid var(--rule); padding-top:10px; }
   .rnote > summary { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-mute); cursor:pointer; list-style:none; display:flex; align-items:center; gap:7px; }
@@ -299,6 +308,13 @@
   .bicon { flex:0 0 auto; width:17px; height:17px; color:var(--ink-mute); opacity:0.72; transition:color var(--t-med) var(--ease), opacity var(--t-med) var(--ease); }
   .bicon svg { width:100%; height:100%; display:block; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
   .brow.on .bicon { color:var(--accent); opacity:1; }
+  /* (i) explainer trigger next to each domain name */
+  .info-btn { flex:0 0 auto; width:15px; height:15px; padding:0; margin-left:1px; background:none; border:0; color:var(--ink-mute); opacity:0.6; cursor:pointer; position:relative; transition:color 160ms ease, opacity 160ms ease; }
+  .info-btn svg { width:100%; height:100%; display:block; fill:none; stroke:currentColor; stroke-width:1.3; }
+  .info-btn:hover { color:var(--ink); opacity:1; }
+  .info-btn.is-open { color:var(--accent); opacity:1; }
+  .info-btn:focus-visible { outline:1px solid var(--ink); outline-offset:2px; border-radius:50%; }
+  .info-btn::after { content:""; position:absolute; inset:-10px; }   /* enlarge the touch target */
 
   /* ── Verdict: three states (empty · below · warranted-filled) ── */
   .rcard.warranted { background:linear-gradient(180deg,#E7F1FB 0%, var(--paper) 58%); box-shadow:0 16px 44px -22px rgba(31,116,196,0.55); }
@@ -550,7 +566,7 @@
     <span class="brand-sub">Targeting the antimicrobial envelope · West Suffolk Cardiology</span>
   </div>
   <div class="topbar-actions">
-    <button type="button" class="tb-ver" id="ver-btn" aria-haspopup="dialog" title="What’s new">v1.3.0</button>
+    <button type="button" class="tb-ver" id="ver-btn" aria-haspopup="dialog" title="What’s new">v1.4.0</button>
     <button class="tb-btn" id="about-btn" aria-haspopup="dialog">About</button>
   </div>
 </header>
@@ -558,7 +574,10 @@
 <!-- ── App ── -->
 <main class="app">
   <section class="domains">
-    <div class="blist" id="bl-groups"><!-- domains injected --></div>
+    <div class="blist" id="bl-groups">
+      <p class="blist-note"><strong>Tick only the factors that apply.</strong> It’s normal to leave a row blank — anything you don’t tick simply scores&nbsp;0.</p>
+      <!-- domains injected -->
+    </div>
   </section>
 
   <aside class="result">
@@ -594,7 +613,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-label="About the BLISTER score">
     <button class="modal-close" id="about-close" aria-label="Close">×</button>
     <div class="eyebrow" style="margin-bottom:14px;">About</div>
-    <h2 class="about-h">BLISTER Score<span class="ver-pill">v1.3.0</span></h2>
+    <h2 class="about-h">BLISTER Score<span class="ver-pill">v1.4.0</span></h2>
     <p class="about-lede">© 2026 U&nbsp;Bhalraam · Licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer license">CC BY-NC-ND 4.0</a></p>
 
     <div class="about-tabs" role="tablist" aria-label="About sections">
@@ -640,7 +659,14 @@
     <!-- Version -->
     <div class="about-panel" role="tabpanel" id="about-panel-version" aria-labelledby="about-tab-version" data-about-panel="version" hidden>
     <div class="cl">
-      <div class="ver-tag">v1.3.0 · June 2026</div>
+      <div class="ver-tag">v1.4.0 · June 2026</div>
+      <ul class="cl-list">
+        <li><strong>Domain explainers</strong> — tap the <strong>(i)</strong> beside any domain for a short, evidence-based note on what it captures and why it raises CIED-infection risk, drawn from the BLISTER publication.</li>
+        <li>Added an <strong>≥ 70 years</strong> age option, plus a reminder at the top of the list that you tick <strong>only the factors that apply</strong> — blank rows simply score 0.</li>
+        <li>Small-screen result panel rebuilt as <strong>two columns</strong> (score &amp; verdict left, Copy / Reset right), with a clearer split between the scrolling factor list and the docked result.</li>
+        <li>The copy-note hover preview now opens on whichever side has room.</li>
+      </ul>
+      <div class="ver-tag" style="margin-top:18px;">v1.3.0 · June 2026</div>
       <ul class="cl-list">
         <li><strong>About, reimagined</strong> — the About panel is now three tabs (Developer · Application · Version). It opens on Application from the About button, or jumps straight to this changelog when you tap the version number.</li>
         <li>Added a developer profile with portfolio and publication links, and a CC BY-NC-ND 4.0 licence notice.</li>
@@ -710,6 +736,7 @@ const GROUPS = [
   { id:'S', letter:'S', name:'Sixty or younger', crits:[
     { key:'u60',   pts:2, label:'Under 60 years', mx:'age' },
     { key:'s6069', pts:1, label:'60 – 69 years',  mx:'age' },
+    { key:'a70',   pts:0, label:'≥ 70 years',     mx:'age' },
   ]},
   { id:'T', letter:'T', name:'Type of procedure', crits:[
     { key:'ppm',  pts:0, label:'PPM implant / box change', mx:'dev' },
@@ -726,6 +753,17 @@ const GROUPS = [
     { key:'r2', pts:4, label:'2+ previous procedures',  mx:'rep' },
   ]},
 ];
+
+/* Short, paper-grounded explainers (Maclean et al, Circ Arrhythm Electrophysiol 2024;17:e012446) — shown in the (i) popover on each domain header. */
+const INFO = {
+  B: 'Pre-procedure renal impairment (eGFR < 30) and systemic inflammation (CRP ≥ 50) each independently predict infection. A raised CRP may signal an occult infection that could seed the new device — treat any source first.',
+  L: 'Pocket-open (skin-to-skin) time ≥ 120 min — the top quartile of procedure duration. A longer open wound means more bacterial exposure and reflects complexity, predicting infection independent of the procedure type.',
+  I: 'Current steroid or immunosuppressant use, or an immunocompromising condition such as HIV. Impaired host defence lets organisms contaminating the pocket go uncleared.',
+  S: 'Younger patients are, paradoxically, at higher independent risk — greatest under 60, less at 60–69, and ≥ 70 is the reference (0 points). A predictor inherited from the PADIT score.',
+  T: 'Greater hardware burden and tissue trauma raise risk. A PPM implant / box change is the reference (0); risk rises through ICD and CRT changes and new / revised leads, up to lead extraction — the highest-risk procedure.',
+  E: 'Any re-entry of the same pocket within 2 years of a previous procedure. The single strongest predictor (≈10× risk): it disrupts the healed capsule and exposes existing hardware in scarred, poorly vascularised tissue.',
+  R: 'The number of previous procedures on the system, regardless of timing — cumulative scarring, hardware and contamination exposure. Distinct from Early reintervention (recent same-pocket timing); a patient can score on both.',
+};
 
 /* Line glyphs per domain — aid at-a-glance scanning; they light up with the row. */
 const ICONS = {
@@ -758,7 +796,7 @@ GROUPS.forEach(g => {
   row.innerHTML = `
     <div class="bletter">${g.letter}<span class="bbadge" data-badge="${g.id}"></span></div>
     <div class="bnamecol">
-      <span class="bname-row"><span class="bicon">${ICONS[g.id] || ''}</span><span class="bname">${g.name}</span></span>
+      <span class="bname-row"><span class="bicon">${ICONS[g.id] || ''}</span><span class="bname">${g.name}</span><button type="button" class="info-btn" data-info="${g.id}" aria-label="About ${g.name}" aria-expanded="false"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4"/><line x1="8" y1="7.3" x2="8" y2="11.3"/><circle cx="8" cy="4.7" r="0.55" fill="currentColor" stroke="none"/></svg></button></span>
     </div>
     <div class="bchips">${chips}</div>`;
   groupsEl.appendChild(row);
@@ -974,15 +1012,37 @@ copyBtn.addEventListener('click', async () => {
   const place = () => {
     const r = copyBtn.getBoundingClientRect();
     const pw = bubble.offsetWidth, ph = bubble.offsetHeight, m = 10;
-    let left = Math.round(r.left + r.width / 2 - pw / 2);
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const room = { right: window.innerWidth - r.right, left: r.left,
+                   down: window.innerHeight - r.bottom, up: r.top };
+    const fits = (s) => (s === 'right' || s === 'left') ? room[s] >= pw + m : room[s] >= ph + m;
+    // Prefer a side beside the button (right, then left), else below/above; else the roomiest.
+    const order = ['right', 'left', 'down', 'up'];
+    const side = order.find(fits) || order.reduce((a, b) => room[b] > room[a] ? b : a, 'down');
+
+    let left, top;
+    if (side === 'right' || side === 'left') {
+      left = side === 'right' ? r.right + m : r.left - pw - m;
+      top  = Math.round(cy - ph / 2);
+    } else {
+      top  = side === 'down' ? r.bottom + m : r.top - ph - m;
+      left = Math.round(cx - pw / 2);
+    }
     left = Math.max(12, Math.min(left, window.innerWidth - pw - 12));   // keep on-screen
-    let top = r.bottom + m, flip = false;
-    if (top + ph > window.innerHeight - 8) { top = r.top - ph - m; flip = true; } // flip above if no room below
-    bubble.classList.toggle('flip-up', flip);
+    top  = Math.max(8,  Math.min(top,  window.innerHeight - ph - 8));
+
+    bubble.classList.remove('side-up', 'side-down', 'side-left', 'side-right');
+    bubble.classList.add('side-' + side);
     bubble.style.left = left + 'px';
-    bubble.style.top  = Math.max(8, top) + 'px';
-    const ax = r.left + r.width / 2 - left - 6;                          // arrow points at the button centre
-    arrow.style.left = Math.max(12, Math.min(ax, pw - 24)) + 'px';
+    bubble.style.top  = top + 'px';
+
+    if (side === 'right' || side === 'left') {                          // arrow tracks the button along the shared edge
+      arrow.style.left = '';
+      arrow.style.top  = Math.max(10, Math.min(cy - top - 6, ph - 22)) + 'px';
+    } else {
+      arrow.style.top  = '';
+      arrow.style.left = Math.max(12, Math.min(cx - left - 6, pw - 24)) + 'px';
+    }
   };
   const show = () => {
     if (!canHover.matches) return;
@@ -999,6 +1059,84 @@ copyBtn.addEventListener('click', async () => {
   copyBtn.addEventListener('click', hide);                              // copying dismisses the preview
   window.addEventListener('scroll', () => { if (bubble.classList.contains('show')) place(); }, true);
   window.addEventListener('resize', hide);
+})();
+
+/* ---- Domain explainer (i): tap a header's (i) for a paper-grounded note. Click-toggled, so it works on touch too. ---- */
+(() => {
+  const pop = document.createElement('div');
+  pop.className = 'copy-preview info-pop';
+  pop.setAttribute('role', 'tooltip');
+  pop.innerHTML = '<span class="copy-preview-arrow"></span>'
+    + '<div class="info-pop-title"></div>'
+    + '<div class="info-pop-text"></div>';
+  const arrow   = pop.querySelector('.copy-preview-arrow');
+  const titleEl = pop.querySelector('.info-pop-title');
+  const textEl  = pop.querySelector('.info-pop-text');
+  document.body.appendChild(pop);
+  let openBtn = null;
+
+  const place = () => {
+    if (!openBtn) return;
+    const r = openBtn.getBoundingClientRect();
+    const pw = pop.offsetWidth, ph = pop.offsetHeight, m = 10;
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const room = { right: window.innerWidth - r.right, left: r.left,
+                   down: window.innerHeight - r.bottom, up: r.top };
+    const fits = (s) => (s === 'right' || s === 'left') ? room[s] >= pw + m : room[s] >= ph + m;
+    const order = ['right', 'left', 'down', 'up'];   // prefer opening to the right of the (i)
+    const side = order.find(fits) || order.reduce((a, b) => room[b] > room[a] ? b : a, 'down');
+    let left, top;
+    if (side === 'right' || side === 'left') {
+      left = side === 'right' ? r.right + m : r.left - pw - m;
+      top  = Math.round(cy - ph / 2);
+    } else {
+      top  = side === 'down' ? r.bottom + m : r.top - ph - m;
+      left = Math.round(cx - pw / 2);
+    }
+    left = Math.max(12, Math.min(left, window.innerWidth - pw - 12));
+    top  = Math.max(8,  Math.min(top,  window.innerHeight - ph - 8));
+    pop.classList.remove('side-up', 'side-down', 'side-left', 'side-right');
+    pop.classList.add('side-' + side);
+    pop.style.left = left + 'px';
+    pop.style.top  = top + 'px';
+    if (side === 'right' || side === 'left') {
+      arrow.style.left = '';
+      arrow.style.top  = Math.max(10, Math.min(cy - top - 6, ph - 22)) + 'px';
+    } else {
+      arrow.style.top  = '';
+      arrow.style.left = Math.max(12, Math.min(cx - left - 6, pw - 24)) + 'px';
+    }
+  };
+  const open = (btn) => {
+    const id = btn.dataset.info;
+    if (!INFO[id]) return;
+    const g = GROUPS.find(gr => gr.id === id);
+    titleEl.textContent = g ? g.name : id;
+    textEl.textContent  = INFO[id];
+    if (openBtn && openBtn !== btn) { openBtn.classList.remove('is-open'); openBtn.setAttribute('aria-expanded', 'false'); }
+    openBtn = btn;
+    btn.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+    pop.classList.add('show');
+    place();
+  };
+  const close = () => {
+    if (!openBtn) return;
+    pop.classList.remove('show');
+    openBtn.classList.remove('is-open');
+    openBtn.setAttribute('aria-expanded', 'false');
+    openBtn = null;
+  };
+  groupsEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.info-btn');
+    if (!btn) return;
+    e.stopPropagation();                       // don't let the document handler close it immediately
+    (openBtn === btn) ? close() : open(btn);
+  });
+  document.addEventListener('click', (e) => { if (openBtn && !pop.contains(e.target)) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  window.addEventListener('scroll', place, true);   // follow the (i) when the list scrolls
+  window.addEventListener('resize', close);
 })();
 
 render();
