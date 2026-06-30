@@ -1,7 +1,7 @@
 /* BLISTER Score — service worker
    Cache-first for the app shell so it works offline once installed. Bump
    CACHE when shipping a new version to force clients to refresh. */
-const CACHE = 'blister-v1.2.0';
+const CACHE = 'blister-v1.3.0';
 
 const CORE = [
   './',
@@ -11,6 +11,7 @@ const CORE = [
   'favicon.ico',
   'favicon-32.png',
   'apple-touch-icon.png',
+  'dev-photo.jpg',
   'icon-192.png',
   'icon-512.png',
   'icon-maskable-512.png',

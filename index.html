@@ -71,7 +71,9 @@
     padding:7px 13px; border:1px solid var(--rule); background:transparent; color:var(--ink-mid); cursor:pointer; transition:all 180ms ease;
   }
   .tb-btn:hover { border-color:var(--ink); color:var(--ink); }
-  .tb-ver { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-mute); }
+  .tb-ver { appearance:none; background:none; border:0; padding:4px 2px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-mute); cursor:pointer; transition:color 160ms ease; }
+  .tb-ver:hover { color:var(--ink-mid); }
+  .tb-ver:focus-visible { outline:1px solid var(--ink); outline-offset:2px; }
   @media (max-width: 480px) { .tb-ver { display:none; } }
 
   /* ── App layout ── */
@@ -196,7 +198,7 @@
   /* ── About modal ── */
   .modal-backdrop { position:fixed; inset:0; z-index:100; background:rgba(14,34,51,0.45); backdrop-filter:blur(3px); display:flex; align-items:flex-start; justify-content:center; padding:5vh 16px; opacity:0; transition:opacity 220ms ease; }
   .modal-backdrop.show { opacity:1; }
-  .modal { background:var(--paper); border:1.5px solid var(--ink); max-width:620px; width:100%; max-height:88vh; overflow:auto; position:relative; padding:30px 32px 28px; transform:translateY(10px); transition:transform 260ms cubic-bezier(0.2,0.7,0.2,1); }
+  .modal { background:var(--paper); border:1.5px solid var(--ink); max-width:620px; width:100%; max-height:88vh; overflow-y:auto; overflow-x:hidden; position:relative; padding:30px 32px 28px; transform:translateY(10px); transition:transform 260ms cubic-bezier(0.2,0.7,0.2,1); }
   .modal-backdrop.show .modal { transform:translateY(0); }
   .modal::before { content:""; position:absolute; top:-1.5px; left:-1.5px; right:-1.5px; height:5px; background:var(--accent); }
   .modal-close { position:absolute; top:14px; right:16px; width:30px; height:30px; border:1px solid var(--rule); background:transparent; color:var(--ink-mute); font-size:18px; line-height:1; cursor:pointer; border-radius:50%; transition:all 180ms ease; }
@@ -214,6 +216,36 @@
   .modal .cl-list { list-style:none; padding:0; margin:8px 0 0; display:grid; gap:5px; }
   .modal .cl-list li { position:relative; padding-left:16px; font-size:13.5px; color:var(--ink-mid); line-height:1.4; }
   .modal .cl-list li::before { content:"—"; position:absolute; left:0; color:var(--ink-mute); }
+  /* ── About modal — tabbed (Developer / Application / Version) ── */
+  .modal h2.about-h { display:flex; align-items:center; flex-wrap:wrap; gap:0; margin-bottom:0; }
+  .ver-pill { display:inline-block; margin-left:11px; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:3px 9px; line-height:1; white-space:nowrap; transform:translateY(-2px); }
+  .modal p.about-lede { font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mute); margin:-1px 0 18px; line-height:1.4; }
+  .about-lede a { color:var(--ink-mute); text-decoration:none; border-bottom:1px solid var(--rule); transition:color 160ms ease; }
+  .about-lede a:hover { color:var(--ink); }
+  .about-tabs { display:flex; border-bottom:1px solid var(--ink); margin:0 0 20px; }
+  .about-tab { appearance:none; background:none; border:0; padding:0 0 10px; margin-right:26px; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--ink-mute); cursor:pointer; position:relative; transition:color 160ms ease; }
+  .about-tab:last-child { margin-right:0; }
+  .about-tab:hover, .about-tab.is-active { color:var(--ink); }
+  .about-tab.is-active::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--accent); }
+  .about-tab:focus-visible { outline:1px solid var(--ink); outline-offset:3px; }
+  .about-panel { display:none; }
+  .about-panel.is-active { display:block; animation:aboutPanelIn 240ms var(--ease); }
+  @keyframes aboutPanelIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+  /* Developer panel */
+  .dev-head { display:flex; align-items:center; gap:15px; margin-bottom:14px; }
+  .dev-photo { width:74px; height:74px; border-radius:50%; object-fit:cover; border:1px solid var(--ink); flex-shrink:0; }
+  .dev-role { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--accent); margin-bottom:3px; }
+  .dev-name { font-family:'Newsreader',serif; font-size:1.35rem; font-weight:500; color:var(--ink); line-height:1.15; letter-spacing:-0.01em; }
+  .dev-cred { font-family:'Newsreader',serif; font-style:italic; font-size:12.5px; color:var(--ink-mute); margin-top:2px; line-height:1.3; }
+  .dev-links { display:flex; flex-wrap:wrap; gap:9px 16px; margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; }
+  .dev-links a { color:var(--ink-mute); text-decoration:none; transition:color 160ms ease; }
+  .dev-links a:hover { color:var(--ink); }
+  .dev-portfolio { display:inline-flex; align-items:center; gap:6px; margin-top:14px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.06em; color:var(--accent); text-decoration:none; border-bottom:1px solid currentColor; padding-bottom:1px; transition:color 160ms ease; }
+  .dev-portfolio:hover { color:var(--ink); }
+  /* Version panel */
+  .ver-entry { margin-bottom:20px; }
+  .ver-entry:last-child { margin-bottom:2px; }
+  .ver-tag { font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
 
   /* ── Install prompt ── */
   .install-card { position:fixed; left:50%; bottom:18px; transform:translateX(-50%) translateY(150%); width:min(420px,calc(100vw - 28px)); z-index:90; background:var(--paper); border:1.5px solid var(--ink); box-shadow:0 18px 50px -12px rgba(14,34,51,0.45); padding:16px 18px; display:grid; grid-template-columns:44px 1fr; gap:14px; align-items:center; transition:transform 480ms cubic-bezier(0.2,0.7,0.2,1), opacity 380ms ease; opacity:0; }
@@ -309,13 +341,13 @@
   .spl-eyebrow { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--ink-mute); }
   .spl-headline { margin:0; font-family:'Newsreader',serif; font-weight:600; font-size:2.5rem; letter-spacing:-0.02em; line-height:1; color:var(--ink); }
   .spl-tagline { margin:0; font-family:'Newsreader',serif; font-size:1.06rem; line-height:1.4; color:var(--ink-mid); }
-  .spl-stats { display:none; align-self:stretch; align-items:stretch; border:1px solid var(--rule); border-radius:14px; overflow:hidden; background:rgba(255,255,255,0.55); margin-top:4px; }
+  .spl-stats { display:none; align-self:flex-start; align-items:stretch; border:1px solid var(--rule); border-radius:14px; overflow:hidden; background:rgba(255,255,255,0.55); margin-top:4px; }
   .spl-cell { flex:1; padding:15px 12px 16px; border-left:1px solid var(--rule); display:flex; flex-direction:column; align-items:center; justify-content:flex-start; text-align:center; gap:9px; min-width:0; }
   .spl-cell:first-child { border-left:none; }
   .cell-num { font-family:'Newsreader',serif; font-weight:500; font-size:1.85rem; line-height:1; letter-spacing:-0.02em; color:var(--ink); font-feature-settings:"lnum" 1,"tnum" 1; }
   .cell-num.cell-tyrx { color:var(--tyrx); }
   .cell-num.cell-accent { color:var(--accent); }
-  .cell-lab { font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mute); line-height:1.4; }
+  .cell-lab { font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mute); line-height:1.4; white-space:nowrap; }
   .spl-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center; margin-top:8px; }
   .spl-about {
     font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
@@ -331,7 +363,7 @@
     .spl-content { align-items:flex-start; text-align:left; }
     .spl-headline { font-size:3.3rem; }
     .spl-stats { display:flex; }
-    .spl-actions { justify-content:flex-start; }
+    .spl-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-self:flex-start; }
   }
 
   .spl-word { display:flex; flex-direction:column; align-items:center; gap:8px; opacity:0; transform:translateY(8px); animation:spl-rise 220ms var(--spl-ease) 800ms forwards; }
@@ -484,11 +516,11 @@
   <div class="brand">
     <span class="brand-mark">B</span>
     <span class="brand-title">BLISTER Score</span>
-    <span class="brand-sub">CIED infection → TYRX envelope · West Suffolk Cardiology</span>
+    <span class="brand-sub">Targeting the antimicrobial envelope · West Suffolk Cardiology</span>
   </div>
   <div class="topbar-actions">
-    <span class="tb-ver">v1.2.0</span>
-    <button class="tb-btn" id="about-btn">About</button>
+    <button type="button" class="tb-ver" id="ver-btn" aria-haspopup="dialog" title="What’s new">v1.3.0</button>
+    <button class="tb-btn" id="about-btn" aria-haspopup="dialog">About</button>
   </div>
 </header>
 
@@ -523,14 +555,46 @@
   </aside>
 </main>
 
-<footer class="footstrip">West Suffolk NHS Foundation Trust · Cardiology · BLISTER Score v1.2.0 · Decision support · not patient-facing</footer>
+<footer class="footstrip">West Suffolk NHS Foundation Trust · Cardiology</footer>
 
 
 <!-- ── About modal ── -->
 <div class="modal-backdrop" id="about-modal" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-label="About the BLISTER score">
     <button class="modal-close" id="about-close" aria-label="Close">×</button>
-    <h2>About the BLISTER score</h2>
+    <div class="eyebrow" style="margin-bottom:14px;">About</div>
+    <h2 class="about-h">BLISTER Score<span class="ver-pill">v1.3.0</span></h2>
+    <p class="about-lede">© 2026 U&nbsp;Bhalraam · Licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer license">CC BY-NC-ND 4.0</a></p>
+
+    <div class="about-tabs" role="tablist" aria-label="About sections">
+      <button type="button" class="about-tab" role="tab" id="about-tab-dev" aria-controls="about-panel-dev" aria-selected="false" data-about-tab="dev">Developer</button>
+      <button type="button" class="about-tab is-active" role="tab" id="about-tab-app" aria-controls="about-panel-app" aria-selected="true" data-about-tab="app">Application</button>
+      <button type="button" class="about-tab" role="tab" id="about-tab-version" aria-controls="about-panel-version" aria-selected="false" data-about-tab="version">Version</button>
+    </div>
+
+    <!-- Developer -->
+    <div class="about-panel" role="tabpanel" id="about-panel-dev" aria-labelledby="about-tab-dev" data-about-panel="dev" hidden>
+      <div class="dev-head">
+        <img class="dev-photo" src="dev-photo.jpg" alt="Portrait of Dr U Bhalraam" width="74" height="74" loading="lazy" />
+        <div style="min-width:0;">
+          <div class="dev-role">Cardiology · Data science</div>
+          <div class="dev-name">Dr U&nbsp;Bhalraam (Raam)</div>
+          <div class="dev-cred">MBChB, MRCP, BMSc(Hons.), PGCert, PGCert(Dist.)</div>
+        </div>
+      </div>
+      <p>I'm a cardiology registrar with an interest in cardiac electrophysiology and device therapy. I built the BLISTER Score app to bring a published, externally-validated infection-risk model to the bedside — helping target the <strong>TYRX antimicrobial envelope</strong> to the patients most likely to benefit, where it is most cost-effective.</p>
+      <div class="dev-links">
+        <a href="https://ubhalraam.com/publications" target="_blank" rel="noopener noreferrer">Publications</a>
+        <a href="https://scholar.google.com/citations?user=4SM2zgsAAAAJ&amp;hl=en" target="_blank" rel="noopener noreferrer">Scholar</a>
+        <a href="https://orcid.org/0000-0003-3337-4669" target="_blank" rel="noopener noreferrer">ORCID</a>
+        <a href="https://github.com/CoolShades" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://x.com/CardioShades" target="_blank" rel="noopener noreferrer">X</a>
+      </div>
+      <a class="dev-portfolio" href="https://ubhalraam.com" target="_blank" rel="noopener noreferrer">ubhalraam.com <span aria-hidden="true">↗</span></a>
+    </div>
+
+    <!-- Application -->
+    <div class="about-panel is-active" role="tabpanel" id="about-panel-app" aria-labelledby="about-tab-app" data-about-panel="app">
     <p>CIED infection is a serious, costly complication of pacemaker, ICD and CRT procedures, and its incidence is rising. The <strong>TYRX antimicrobial envelope</strong> reduces infection in high-risk patients (WRAP-IT trial) but is too costly for routine use — so a way to target it is needed.</p>
     <p>The <strong>BLISTER score</strong> (Maclean et al, 2024) was derived from 7,383 procedures at St Bartholomew's Hospital and externally validated in standard- and high-risk cohorts. It extends the older PADIT score and out-performs it (AUC 0.82 vs 0.71). A <strong>score of ≥6</strong> is the threshold at which fitting an envelope is cost-effective within NICE willingness-to-pay thresholds: ~30% relative reduction in infection, a number needed to treat of 31, and £18,446 per QALY.</p>
     <div class="chips">
@@ -540,26 +604,36 @@
     </div>
     <div class="src"><strong>Source.</strong> Maclean E, Mahtani K, Honarbakhsh S, et al. BLISTER Score: A Novel, Externally Validated Tool for Predicting CIED Infections, and Its Cost-Utility Implications for Antimicrobial Envelope Use. Circ Arrhythm Electrophysiol. 2024;17:e012446. DOI: 10.1161/CIRCEP.123.012446.</div>
     <div class="disc"><strong>Disclaimer.</strong> Clinical decision support for West Suffolk Cardiology, reproducing a published, peer-reviewed score for convenience at the point of care. It does not replace clinical judgement or local infection-prevention policy. No patient data is stored or transmitted — everything runs in your browser.</div>
+    </div>
+
+    <!-- Version -->
+    <div class="about-panel" role="tabpanel" id="about-panel-version" aria-labelledby="about-tab-version" data-about-panel="version" hidden>
     <div class="cl">
-      <div class="eyebrow">Version · v1.2.0 · June 2026</div>
+      <div class="ver-tag">v1.3.0 · June 2026</div>
+      <ul class="cl-list">
+        <li><strong>About, reimagined</strong> — the About panel is now three tabs (Developer · Application · Version). It opens on Application from the About button, or jumps straight to this changelog when you tap the version number.</li>
+        <li>Added a developer profile with portfolio and publication links, and a CC BY-NC-ND 4.0 licence notice.</li>
+      </ul>
+      <div class="ver-tag" style="margin-top:18px;">v1.2.0 · June 2026</div>
       <ul class="cl-list">
         <li><strong>Copy note</strong> — generate a paste-ready pre-procedure summary (BLISTER score, factor breakdown and the envelope recommendation) for the SOLUS record. Below the threshold it flags when a prolonged pocket-open time (≥120 min) would tip the score to ≥6.</li>
         <li>Small-screen layout rebuilt as an app-shell — the domains scroll between a fixed header and a static result panel docked above the footer (no more floating bar).</li>
         <li>The rainbow spine flourish now replays as a gentle attract loop while the form is untouched, and stops as soon as a factor is selected.</li>
         <li>Tidier verdict — a real 0-point selection (e.g. a PPM box change) now reads “No envelope by score”, the warranted box shows two key figures, and the eyebrow reads “Envelope warranted”.</li>
       </ul>
-      <div class="eyebrow" style="margin-top:16px;">v1.1.0 · June 2026</div>
+      <div class="ver-tag" style="margin-top:18px;">v1.1.0 · June 2026</div>
       <ul class="cl-list">
         <li>New animated launch screen — a pacemaker is wrapped in the TYRX antimicrobial envelope and seated into the device pocket, an antimicrobial force field repels infection, and a “Go to Calculator” reveal lifts the curtain with a muted rainbow flourish down the BLISTER spine.</li>
         <li>Calculator rebuilt — answer factors sit below each domain and line up on a grid; all are checkboxes, with mutually-exclusive options (age band, device box-change type, previous procedures) handled automatically.</li>
         <li>Type of procedure now supports combinations — a box change, a new / revised lead and a lead extraction can be scored together.</li>
       </ul>
-      <div class="eyebrow" style="margin-top:16px;">v1.0.0 · June 2026</div>
+      <div class="ver-tag" style="margin-top:18px;">v1.0.0 · June 2026</div>
       <ul class="cl-list">
         <li>Initial release — full BLISTER calculator across all seven domains with live scoring.</li>
         <li>Antimicrobial-envelope verdict at the ≥6 threshold, with projected infection reduction, NNT and cost per QALY.</li>
         <li>Installable as an offline app (PWA) with West Suffolk branding.</li>
       </ul>
+    </div>
     </div>
   </div>
 </div>
@@ -851,12 +925,35 @@ copyBtn.addEventListener('click', async () => {
 
 render();
 
-/* ---- About modal ---- */
+/* ---- About modal (tabbed: Developer / Application / Version) ---- */
 const aboutModal = document.getElementById('about-modal');
-function openAbout() { aboutModal.hidden = false; requestAnimationFrame(() => aboutModal.classList.add('show')); }
+const aboutCard  = aboutModal.querySelector('.modal');
+const aboutTabs   = aboutModal.querySelectorAll('[data-about-tab]');
+const aboutPanels = aboutModal.querySelectorAll('[data-about-panel]');
+function selectAboutTab(key) {
+  aboutTabs.forEach((t) => {
+    const on = t.dataset.aboutTab === key;
+    t.classList.toggle('is-active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  aboutPanels.forEach((p) => {
+    const on = p.dataset.aboutPanel === key;
+    p.classList.toggle('is-active', on);
+    p.hidden = !on;
+  });
+  if (aboutCard) aboutCard.scrollTop = 0;  // start each tab from the top
+}
+// `tab` defaults to the Application view; the version trigger opens on Version.
+function openAbout(tab = 'app') {
+  selectAboutTab(typeof tab === 'string' ? tab : 'app');
+  aboutModal.hidden = false;
+  requestAnimationFrame(() => aboutModal.classList.add('show'));
+}
 function closeAbout() { aboutModal.classList.remove('show'); setTimeout(() => { aboutModal.hidden = true; }, 220); }
-document.getElementById('about-btn').addEventListener('click', openAbout);
+document.getElementById('about-btn').addEventListener('click', () => openAbout('app'));
+document.getElementById('ver-btn').addEventListener('click', () => openAbout('version'));
 document.getElementById('about-close').addEventListener('click', closeAbout);
+aboutTabs.forEach((t) => t.addEventListener('click', () => selectAboutTab(t.dataset.aboutTab)));
 aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) closeAbout(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !aboutModal.hidden) closeAbout(); });
 
@@ -881,7 +978,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !aboutMo
   if (goBtn) goBtn.addEventListener('click', done);
   else splash.addEventListener('click', done);      // fallback: tap anywhere if the button is missing
   const aboutBtn = document.getElementById('spl-about');
-  if (aboutBtn) aboutBtn.addEventListener('click', () => { done(); setTimeout(openAbout, 660); }); // lift, then open the About modal
+  if (aboutBtn) aboutBtn.addEventListener('click', () => { done(); setTimeout(() => openAbout('app'), 660); }); // lift, then open the About modal
 })();
 
 /* =============================================================
