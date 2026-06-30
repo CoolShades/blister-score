@@ -182,6 +182,32 @@
   .btn.ghost { border-color:var(--rule); color:var(--ink-mute); }
   .btn.ghost:hover { background:transparent; border-color:var(--ink); color:var(--ink); }
 
+  /* ── Copy-note hover preview — a speech bubble that drops down from the Copy
+     button showing the exact text that will be copied (mouse / keyboard only). ── */
+  .copy-preview {
+    position:fixed; left:0; top:0; z-index:90;
+    width:min(360px, calc(100vw - 24px));
+    background:var(--paper-hi); border:1.5px solid var(--ink);
+    box-shadow:0 18px 44px -18px rgba(14,34,51,0.55);
+    padding:11px 14px 12px;
+    opacity:0; transform:translateY(-4px); pointer-events:none;
+    transition:opacity 150ms ease, transform 150ms ease;
+  }
+  .copy-preview.show { opacity:1; transform:translateY(0); }
+  .copy-preview.flip-up { transform:translateY(4px); }
+  .copy-preview.flip-up.show { transform:translateY(0); }
+  .copy-preview-arrow {
+    position:absolute; top:-7px; left:24px; width:12px; height:12px;
+    background:var(--paper-hi); border-left:1.5px solid var(--ink); border-top:1.5px solid var(--ink);
+    transform:rotate(45deg);
+  }
+  .copy-preview.flip-up .copy-preview-arrow {
+    top:auto; bottom:-7px; border-left:none; border-top:none;
+    border-right:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink);
+  }
+  .copy-preview-eyebrow { font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:0.16em; text-transform:uppercase; color:var(--accent); margin-bottom:7px; }
+  .copy-preview-text { font-family:'Newsreader',serif; font-size:13px; line-height:1.5; color:var(--ink-mid); white-space:pre-wrap; word-break:break-word; }
+
   .rnote { margin-top:12px; border-top:1px solid var(--rule); padding-top:10px; }
   .rnote > summary { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-mute); cursor:pointer; list-style:none; display:flex; align-items:center; gap:7px; }
   .rnote > summary::-webkit-details-marker { display:none; }
@@ -922,6 +948,50 @@ copyBtn.addEventListener('click', async () => {
   clearTimeout(copyResetTimer);
   copyResetTimer = setTimeout(() => { copyBtn.textContent = COPY_LABEL; copyBtn.classList.remove('copied'); }, 1800);
 });
+
+/* ---- Hover preview: a speech bubble under the Copy button showing the exact
+   text that will be copied. Mouse / keyboard only (skipped on touch). ---- */
+(() => {
+  const canHover = window.matchMedia('(hover:hover) and (pointer:fine)');
+  const bubble = document.createElement('div');
+  bubble.className = 'copy-preview';
+  bubble.setAttribute('role', 'tooltip');
+  bubble.innerHTML = '<span class="copy-preview-arrow"></span>'
+    + '<div class="copy-preview-eyebrow">Preview · copies to clipboard</div>'
+    + '<div class="copy-preview-text"></div>';
+  const arrow = bubble.querySelector('.copy-preview-arrow');
+  const text  = bubble.querySelector('.copy-preview-text');
+  document.body.appendChild(bubble);
+
+  const place = () => {
+    const r = copyBtn.getBoundingClientRect();
+    const pw = bubble.offsetWidth, ph = bubble.offsetHeight, m = 10;
+    let left = Math.round(r.left + r.width / 2 - pw / 2);
+    left = Math.max(12, Math.min(left, window.innerWidth - pw - 12));   // keep on-screen
+    let top = r.bottom + m, flip = false;
+    if (top + ph > window.innerHeight - 8) { top = r.top - ph - m; flip = true; } // flip above if no room below
+    bubble.classList.toggle('flip-up', flip);
+    bubble.style.left = left + 'px';
+    bubble.style.top  = Math.max(8, top) + 'px';
+    const ax = r.left + r.width / 2 - left - 6;                          // arrow points at the button centre
+    arrow.style.left = Math.max(12, Math.min(ax, pw - 24)) + 'px';
+  };
+  const show = () => {
+    if (!canHover.matches) return;
+    text.textContent = buildClinicalNote();
+    bubble.classList.add('show');
+    place();
+  };
+  const hide = () => bubble.classList.remove('show');
+
+  copyBtn.addEventListener('mouseenter', show);
+  copyBtn.addEventListener('mouseleave', hide);
+  copyBtn.addEventListener('focus', show);
+  copyBtn.addEventListener('blur', hide);
+  copyBtn.addEventListener('click', hide);                              // copying dismisses the preview
+  window.addEventListener('scroll', () => { if (bubble.classList.contains('show')) place(); }, true);
+  window.addEventListener('resize', hide);
+})();
 
 render();
 
