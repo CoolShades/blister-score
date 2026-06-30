@@ -181,6 +181,11 @@
   .btn.primary.copied, .btn.primary.copied:hover { background:var(--ok); border-color:var(--ok); color:#fff; }
   .btn.ghost { border-color:var(--rule); color:var(--ink-mute); }
   .btn.ghost:hover { background:transparent; border-color:var(--ink); color:var(--ink); }
+  /* Untouched form: nothing to copy or reset, so both buttons read as disabled. */
+  .btn:disabled, .btn.primary:disabled,
+  .btn:disabled:hover, .btn.primary:disabled:hover {
+    background:var(--paper-2); border-color:var(--rule); color:var(--ink-mute); cursor:not-allowed;
+  }
 
   /* ── Copy-note hover preview — a speech bubble that drops down from the Copy
      button showing the exact text that will be copied (mouse / keyboard only). ── */
@@ -817,6 +822,9 @@ function renderVerdict(score) {
   verdictEl.classList.toggle('warranted', w);
   verdictEl.classList.toggle('state-below', !w && !empty);
   verdictEl.classList.toggle('state-empty', empty);
+  // Nothing selected → nothing to copy or reset; grey out + disable both buttons.
+  document.getElementById('bl-copy').disabled = empty;
+  document.getElementById('bl-reset').disabled = empty;
   vEyebrow.textContent = w ? 'Envelope warranted' : 'Antimicrobial envelope';
   /* One-shot 'beat' when the score first crosses the threshold. */
   if (w && !prevW) {
